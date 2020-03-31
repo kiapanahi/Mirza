@@ -10,5 +10,8 @@ namespace Mirza.Web.Models
 
         [SuppressMessage("Usage", "CA2227:Collection properties should be read only", Justification = "<Pending>")]
         public ICollection<UserTeam> Members { get; set; }
+
+        [SuppressMessage("Usage", "CA2227:Collection properties should be read only", Justification = "<Pending>")]
+        public ICollection<WorkLog> WorkLog { get; set; }
     }
 }
