@@ -1,4 +1,5 @@
-﻿using FluentValidation.TestHelper;
+﻿using System;
+using FluentValidation.TestHelper;
 using Mirza.Web.Models;
 using Mirza.Web.Validators;
 using Xunit;
@@ -90,5 +91,42 @@ namespace Mirza.Web.UnitTests.ModelTests
                 .ShouldNotHaveValidationErrorFor(u => u.LastName);
         }
 
+        [Fact]
+        public void Email_Should_Have_Validation_Error_When_Null()
+        {
+            var model = new User { Email = null };
+            _validator.TestValidate(model)
+                .ShouldHaveValidationErrorFor(u => u.Email)
+                .WithErrorMessage("Email must be a non-empty value")
+                .WithSeverity(FluentValidation.Severity.Error);
+        }
+
+        [Fact]
+        public void Email_Should_Have_Validation_Error_When_EmptyString()
+        {
+            var model = new User { Email = string.Empty };
+            _validator.TestValidate(model)
+                .ShouldHaveValidationErrorFor(u => u.Email)
+                .WithErrorMessage("Email must be a non-empty value")
+                .WithSeverity(FluentValidation.Severity.Error);
+        }
+
+        [Fact]
+        public void Email_Should_Have_Validation_Error_When_NotValidEmail()
+        {
+            var model = new User { Email = Guid.NewGuid().ToString() };
+            _validator.TestValidate(model)
+                .ShouldHaveValidationErrorFor(u => u.Email)
+                .WithErrorMessage("Email field must abide by the simple email structure. i.e. NAME@DOMAIN.TLD")
+                .WithSeverity(FluentValidation.Severity.Error);
+        }
+
+        [Fact]
+        public void Email_Should_Be_Valid()
+        {
+            var model = new User { Email = "sample@example.com" };
+            _validator.TestValidate(model)
+                .ShouldNotHaveValidationErrorFor(u => u.Email);
+        }
     }
 }
