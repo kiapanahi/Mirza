@@ -128,5 +128,18 @@ namespace Mirza.Web.UnitTests.ModelTests
             _validator.TestValidate(model)
                 .ShouldNotHaveValidationErrorFor(u => u.Email);
         }
+
+        [Fact]
+        public void Model_Should_be_Valid()
+        {
+            var u = new User
+            {
+                FirstName = "sample_first_name",
+                LastName = "sample_last_name",
+                Email = "sample@example.com"
+            };
+            _validator.TestValidate(u)
+                .ShouldNotHaveAnyValidationErrors();
+        }
     }
 }
