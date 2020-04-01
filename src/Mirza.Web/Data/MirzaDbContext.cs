@@ -38,6 +38,9 @@ namespace Mirza.Web.Data
                     .IsRequired()
                     .HasMaxLength(50);
 
+                    b.Property(a => a.IsActive)
+                    .IsRequired();
+
                     b.Property(a => a.Email)
                     .IsRequired();
 
