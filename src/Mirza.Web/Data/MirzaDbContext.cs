@@ -12,7 +12,7 @@ namespace Mirza.Web.Data
         {
         }
 
-        public DbSet<User> UserSet { get; set; }
+        public DbSet<MirzaUser> UserSet { get; set; }
         public DbSet<Team> TeamSet { get; set; }
         public DbSet<WorkLog> WorkLogSet { get; set; }
 
@@ -24,7 +24,7 @@ namespace Mirza.Web.Data
             }
 
             _ = modelBuilder
-                .Entity<User>(b =>
+                .Entity<MirzaUser>(b =>
                 {
                     b.ToTable("Users");
 

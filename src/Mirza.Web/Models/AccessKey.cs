@@ -10,7 +10,7 @@ namespace Mirza.Web.Models
         public DateTime Expriation { get; set; }
 
         public int OwnerId { get; set; }
-        public User Owner { get; set; }
+        public MirzaUser Owner { get; set; }
 
         public bool IsActive => State == AccessKeyState.Active && Expriation > DateTime.UtcNow;
     }
