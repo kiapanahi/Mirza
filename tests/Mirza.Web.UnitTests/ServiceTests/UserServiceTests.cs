@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using Mirza.Web.Data;
 using Mirza.Web.Models;
 using Mirza.Web.Services.User;
@@ -20,11 +21,11 @@ namespace Mirza.Web.UnitTests.ServiceTests
 
             _inMemoryDbContext = new MirzaDbContext(contextOptions);
 
-            _userService = new UserService(_inMemoryDbContext);
+            _userService = new UserService(_inMemoryDbContext, new NullLogger<UserService>());
         }
 
         [Fact]
-        public async Task Register_Null_User_ThrowsAsync()
+        public async Task Register_Null_User_Throws()
         {
             await Assert.ThrowsAsync<ArgumentNullException>(() => _userService.Register(null));
         }
@@ -52,7 +53,7 @@ namespace Mirza.Web.UnitTests.ServiceTests
         }
 
         [Fact]
-        public async Task Register_Invalid_Model_ThrowsAsync()
+        public async Task Register_Invalid_Model_Throws()
         {
             var u = new MirzaUser
             {
