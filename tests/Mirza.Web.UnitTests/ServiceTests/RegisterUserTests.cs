@@ -1,33 +1,20 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging.Abstractions;
-using Mirza.Web.Data;
 using Mirza.Web.Models;
 using Mirza.Web.Services.User;
 using Xunit;
 
 namespace Mirza.Web.UnitTests.ServiceTests
 {
-    public class UserServiceTests : IDisposable
+    public class RegisterUserTests : UserServiceTestBase
     {
-        private IUserService _userService;
-        private MirzaDbContext _inMemoryDbContext;
-        public UserServiceTests()
-        {
-            var contextOptions = new DbContextOptionsBuilder<MirzaDbContext>()
-                .UseInMemoryDatabase(Guid.NewGuid().ToString())
-                .Options;
-
-            _inMemoryDbContext = new MirzaDbContext(contextOptions);
-
-            _userService = new UserService(_inMemoryDbContext, new NullLogger<UserService>());
-        }
 
         [Fact]
         public async Task Register_Null_User_Throws()
         {
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _userService.Register(null));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => UserService.Register(null));
         }
 
         [Fact]
@@ -47,9 +34,9 @@ namespace Mirza.Web.UnitTests.ServiceTests
                 Email = "email@example.com"
             };
 
-            var user1RegisterResult = await _userService.Register(u1);
+            var user1RegisterResult = await UserService.Register(u1);
 
-            await Assert.ThrowsAsync<DuplicateEmailException>(() => _userService.Register(u2));
+            await Assert.ThrowsAsync<DuplicateEmailException>(() => UserService.Register(u2));
         }
 
         [Fact]
@@ -62,7 +49,7 @@ namespace Mirza.Web.UnitTests.ServiceTests
                 LastName = new string('b', 100)
             };
 
-            await Assert.ThrowsAsync<UserModelValidationException>(() => _userService.Register(u));
+            await Assert.ThrowsAsync<UserModelValidationException>(() => UserService.Register(u));
         }
 
         [Fact]
@@ -75,7 +62,7 @@ namespace Mirza.Web.UnitTests.ServiceTests
                 LastName = "sample_lastname"
             };
 
-            var result = await _userService.Register(u);
+            var result = await UserService.Register(u);
 
             Assert.NotNull(result);
 
@@ -93,19 +80,6 @@ namespace Mirza.Web.UnitTests.ServiceTests
 
             Assert.NotNull(result.WorkLog);
             Assert.Equal(0, result.WorkLog.Count);
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposeAll)
-        {
-            _inMemoryDbContext?.Dispose();
-            _inMemoryDbContext = null;
-            _userService = null;
         }
     }
 }
