@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Mirza.Web.Auth;
 using Mirza.Web.Data;
+using Mirza.Web.Services.User;
 
 namespace Mirza.Web
 {
@@ -25,6 +26,8 @@ namespace Mirza.Web
 
             services.AddAuthentication(AccessKeyAuthenticationDefaults.AuthenticationScheme)
                 .AddScheme<AccessKeyAuthenticationOptions, AccessKeyAuthenticationHandler>(AccessKeyAuthenticationDefaults.AuthenticationScheme, null);
+
+            services.AddScoped<IUserService, UserService>();
 
             services.AddDbContext<MirzaDbContext>(options =>
                     options.UseSqlServer(Configuration.GetConnectionString("MirzaDbContext")));
