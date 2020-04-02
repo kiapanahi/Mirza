@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Mirza.Web.Auth;
 using Mirza.Web.Data;
 
 namespace Mirza.Web
@@ -22,6 +23,9 @@ namespace Mirza.Web
         {
             services.AddControllers();
 
+            services.AddAuthentication(AccessKeyAuthenticationDefaults.AuthenticationScheme)
+                .AddScheme<AccessKeyAuthenticationOptions, AccessKeyAuthenticationHandler>(AccessKeyAuthenticationDefaults.AuthenticationScheme, null);
+
             services.AddDbContext<MirzaDbContext>(options =>
                     options.UseSqlServer(Configuration.GetConnectionString("MirzaDbContext")));
         }
@@ -38,6 +42,7 @@ namespace Mirza.Web
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
