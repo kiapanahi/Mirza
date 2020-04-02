@@ -6,5 +6,6 @@ namespace Mirza.Web.Services.User
     public interface IUserService
     {
         Task<MirzaUser> Register(MirzaUser user);
+        Task<MirzaUser> GetUserWithActiveAccessKey(string accessKey);
     }
 }

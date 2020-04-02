@@ -21,6 +21,30 @@ namespace Mirza.Web.Services.User
             _logger = logger;
             _userValidator = new UserValidator();
         }
+
+        public async Task<MirzaUser> GetUserWithActiveAccessKey(string accessKey)
+        {
+            try
+            {
+                var user = await _dbContext.UserSet
+                    .Include(a => a.AccessKeys)
+                    .SingleOrDefaultAsync(
+                            user => user.IsActive &&
+                            user.AccessKeys.Any(
+                                    ak => ak.State == AccessKeyState.Active &&
+                                    ak.Expriation >= DateTime.UtcNow &&
+                                    accessKey == ak.Key)
+                            )
+                    .ConfigureAwait(false);
+                return user;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("Exception occured while querying for user with access key", e);
+                return null;
+            }
+        }
+
         public async Task<MirzaUser> Register(MirzaUser user)
         {
             if (user == null)
