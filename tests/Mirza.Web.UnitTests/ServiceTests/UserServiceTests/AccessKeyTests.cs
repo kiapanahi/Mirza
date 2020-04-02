@@ -33,7 +33,7 @@ namespace Mirza.Web.UnitTests.ServiceTests.UserServiceTests
                     {
                         Key = accessKeyValue,
                         State = AccessKeyState.Active,
-                        Expriation = accessKeyExpirationTime
+                        Expiration = accessKeyExpirationTime
                     }
                 }
             };
@@ -42,13 +42,13 @@ namespace Mirza.Web.UnitTests.ServiceTests.UserServiceTests
             Assert.True(saveResult.Id > 0);
             Assert.Equal(1, saveResult.AccessKeys.Count);
             Assert.Equal(accessKeyValue, saveResult.AccessKeys.First().Key);
-            Assert.Equal(accessKeyExpirationTime, saveResult.AccessKeys.First().Expriation);
+            Assert.Equal(accessKeyExpirationTime, saveResult.AccessKeys.First().Expiration);
 
             var getUserWithAccessKeyResult = await UserService.GetUserWithActiveAccessKey(accessKeyValue);
             Assert.NotNull(getUserWithAccessKeyResult);
             Assert.Equal(1, getUserWithAccessKeyResult.AccessKeys.Count);
             Assert.Equal(accessKeyValue, getUserWithAccessKeyResult.AccessKeys.First().Key);
-            Assert.Equal(accessKeyExpirationTime, getUserWithAccessKeyResult.AccessKeys.First().Expriation);
+            Assert.Equal(accessKeyExpirationTime, getUserWithAccessKeyResult.AccessKeys.First().Expiration);
             Assert.Equal(saveResult.Id, getUserWithAccessKeyResult.Id);
         }
 
@@ -69,7 +69,7 @@ namespace Mirza.Web.UnitTests.ServiceTests.UserServiceTests
                     {
                         Key = accessKeyValue,
                         State = AccessKeyState.Inative,
-                        Expriation = accessKeyExpirationTime
+                        Expiration = accessKeyExpirationTime
                     }
                 }
             };
@@ -78,7 +78,7 @@ namespace Mirza.Web.UnitTests.ServiceTests.UserServiceTests
             Assert.True(saveResult.Id > 0);
             Assert.Equal(1, saveResult.AccessKeys.Count);
             Assert.Equal(accessKeyValue, saveResult.AccessKeys.First().Key);
-            Assert.Equal(accessKeyExpirationTime, saveResult.AccessKeys.First().Expriation);
+            Assert.Equal(accessKeyExpirationTime, saveResult.AccessKeys.First().Expiration);
 
             var getUserWithAccessKeyResult = await UserService.GetUserWithActiveAccessKey(accessKeyValue);
             Assert.Null(getUserWithAccessKeyResult);

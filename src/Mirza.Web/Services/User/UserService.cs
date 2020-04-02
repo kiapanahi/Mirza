@@ -32,7 +32,7 @@ namespace Mirza.Web.Services.User
                             user => user.IsActive &&
                             user.AccessKeys.Any(
                                     ak => ak.State == AccessKeyState.Active &&
-                                    ak.Expriation >= DateTime.UtcNow &&
+                                    ak.Expiration >= DateTime.UtcNow &&
                                     accessKey == ak.Key)
                             )
                     .ConfigureAwait(false);
@@ -59,7 +59,7 @@ namespace Mirza.Web.Services.User
             }
 
             var duplicateEmail = await _dbContext.UserSet
-                .AnyAsync(u => u.IsActive && u.Email.Equals(user.Email, StringComparison.OrdinalIgnoreCase))
+                .AnyAsync(u => u.IsActive && u.Email == user.Email)
                 .ConfigureAwait(false);
 
             if (duplicateEmail)

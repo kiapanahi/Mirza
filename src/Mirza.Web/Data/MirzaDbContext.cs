@@ -129,7 +129,7 @@ namespace Mirza.Web.Data
                     .IsRequired()
                     .HasConversion(new EnumToStringConverter<AccessKeyState>());
 
-                    b.Property(a => a.Expriation)
+                    b.Property(a => a.Expiration)
                     .IsRequired()
                     .HasColumnType("datetime2");
                 });

@@ -7,12 +7,12 @@ namespace Mirza.Web.Models
         public int Id { get; set; }
         public string Key { get; set; }
         public AccessKeyState State { get; set; }
-        public DateTime Expriation { get; set; }
+        public DateTime Expiration { get; set; }
 
         public int OwnerId { get; set; }
         public MirzaUser Owner { get; set; }
 
-        public bool IsActive => State == AccessKeyState.Active && Expriation > DateTime.UtcNow;
+        public bool IsActive => State == AccessKeyState.Active && Expiration > DateTime.UtcNow;
     }
 
     public enum AccessKeyState
