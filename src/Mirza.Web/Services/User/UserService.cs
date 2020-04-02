@@ -44,6 +44,7 @@ namespace Mirza.Web.Services.User
             {
                 var user = await _dbContext.UserSet
                     .Include(a => a.AccessKeys)
+                    .Include(t => t.Teams).ThenInclude(t => t.Team)
                     .SingleOrDefaultAsync(
                             user => user.IsActive &&
                             user.AccessKeys.Any(
