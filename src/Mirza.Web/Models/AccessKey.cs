@@ -4,6 +4,27 @@ namespace Mirza.Web.Models
 {
     public class AccessKey
     {
+        public AccessKey()
+        {
+
+        }
+
+        public AccessKey(string key, DateTime expirationDate)
+        {
+            if (expirationDate <= DateTime.UtcNow)
+            {
+                throw new ArgumentException("Expiration date must be in the future.", nameof(expirationDate));
+            }
+
+            Key = key;
+            Expiration = expirationDate;
+        }
+
+        public AccessKey(string key) : this(key, DateTime.UtcNow.AddYears(1))
+        {
+
+        }
+
         public int Id { get; set; }
         public string Key { get; set; }
         public AccessKeyState State { get; set; }
