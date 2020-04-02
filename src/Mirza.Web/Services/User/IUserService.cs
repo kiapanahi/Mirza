@@ -7,5 +7,7 @@ namespace Mirza.Web.Services.User
     {
         Task<MirzaUser> Register(MirzaUser user);
         Task<MirzaUser> GetUserWithActiveAccessKey(string accessKey);
+        Task<MirzaUser> GetUser(int id);
+        Task DeleteUser(int id);
     }
 }

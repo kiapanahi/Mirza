@@ -22,6 +22,22 @@ namespace Mirza.Web.Services.User
             _userValidator = new UserValidator();
         }
 
+        public async Task DeleteUser(int id)
+        {
+            try
+            {
+                var user = await _dbContext.UserSet.FindAsync(id);
+                user.IsActive = false;
+                await _dbContext.SaveChangesAsync().ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("Exception occured while marking user as deleted", e);
+                throw;
+            }
+        }
+        public async Task<MirzaUser> GetUser(int id) => await _dbContext.UserSet.FindAsync(id);
+
         public async Task<MirzaUser> GetUserWithActiveAccessKey(string accessKey)
         {
             try
