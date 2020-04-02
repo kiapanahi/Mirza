@@ -9,5 +9,6 @@ namespace Mirza.Web.Services.User
         Task<MirzaUser> GetUserWithActiveAccessKey(string accessKey);
         Task<MirzaUser> GetUser(int id);
         Task DeleteUser(int id);
+        Task<WorkLog> AddWorkLog(int userId, WorkLog workLog);
     }
 }
