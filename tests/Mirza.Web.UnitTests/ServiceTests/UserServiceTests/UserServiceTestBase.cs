@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Mirza.Web.Data;
 using Mirza.Web.Services.User;
 
-namespace Mirza.Web.UnitTests.ServiceTests
+namespace Mirza.Web.UnitTests.ServiceTests.UserServiceTests
 {
     public class UserServiceTestBase : IDisposable
     {

@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Mirza.Web.Models;
 using Mirza.Web.Services.User;
 using Xunit;
 
-namespace Mirza.Web.UnitTests.ServiceTests
+namespace Mirza.Web.UnitTests.ServiceTests.UserServiceTests
 {
     public class RegisterUserTests : UserServiceTestBase
     {

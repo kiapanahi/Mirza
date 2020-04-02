@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Mirza.Web.Models;
 using Xunit;
 
-namespace Mirza.Web.UnitTests.ServiceTests
+namespace Mirza.Web.UnitTests.ServiceTests.UserServiceTests
 {
     public class AccessKeyTests : UserServiceTestBase
     {
