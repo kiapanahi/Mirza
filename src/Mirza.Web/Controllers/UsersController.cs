@@ -53,6 +53,30 @@ namespace Mirza.Web.Controllers
             }
         }
 
+        [HttpGet("detail/{accessKey}")]
+        public async Task<ActionResult<MirzaUser>> GetUserByAccessKey(string accessKey)
+        {
+            try
+            {
+                var user = await _userService.GetUserWithActiveAccessKey(accessKey).ConfigureAwait(false);
+                if (user == null)
+                {
+                    return NotFound();
+                }
+                return Ok(new
+                {
+                    user.FirstName,
+                    user.LastName,
+                    user.Email
+                });
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.ToString());
+                return StatusCode(500, $"Internal Error. LogId: {HttpContext.TraceIdentifier}");
+            }
+        }
+
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for
         // more details see https://aka.ms/RazorPagesCRUD.
         [HttpPost]
