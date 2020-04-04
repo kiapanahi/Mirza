@@ -11,7 +11,7 @@ namespace Mirza.Web.UnitTests.ServiceTests.UserServiceTests
 {
     public class UserServiceTestBase : IDisposable
     {
-        private MirzaDbContext _inMemoryDbContext;
+        protected MirzaDbContext DbContext { get; private set; }
 
         public UserServiceTestBase()
         {
@@ -19,11 +19,11 @@ namespace Mirza.Web.UnitTests.ServiceTests.UserServiceTests
                                  .UseInMemoryDatabase(Guid.NewGuid().ToString())
                                  .Options;
 
-            _inMemoryDbContext = new MirzaDbContext(contextOptions);
+            DbContext = new MirzaDbContext(contextOptions);
 
-            SeedData(_inMemoryDbContext);
+            SeedData(DbContext);
 
-            UserService = new UserService(_inMemoryDbContext, new NullLogger<UserService>());
+            UserService = new UserService(DbContext, new NullLogger<UserService>());
         }
 
         private void SeedData(MirzaDbContext context)
@@ -40,7 +40,7 @@ namespace Mirza.Web.UnitTests.ServiceTests.UserServiceTests
                 {
                     new AccessKey($"012345678901234567890123456789{idx.ToString().PadLeft(2, '0')}")
                         {OwnerId = idx, State = AccessKeyState.Active, Expiration = DateTime.Parse("2020-10-01")},
-                    new AccessKey("abcdefabcdefabcdefabcdefabcdefab")
+                    new AccessKey($"abcdefabcdefabcdefabcdefabcdef{idx.ToString().PadLeft(2, '0')}")
                         {OwnerId = idx, State = AccessKeyState.Inative, Expiration = DateTime.Parse("2020-10-01")}
                 },
                 Email = $"user{idx}@example.com",
@@ -55,7 +55,7 @@ namespace Mirza.Web.UnitTests.ServiceTests.UserServiceTests
 
         private static void SeedTeams(MirzaDbContext context)
         {
-            var teams = Enumerable.Range(1, 5).Select(idx => new Team {Name = $"team-{idx}"});
+            var teams = Enumerable.Range(1, 5).Select(idx => new Team { Name = $"team-{idx}" });
             context.TeamSet.AddRange(teams);
             context.SaveChanges();
         }
@@ -70,8 +70,8 @@ namespace Mirza.Web.UnitTests.ServiceTests.UserServiceTests
 
         protected virtual void Dispose(bool disposeAll)
         {
-            _inMemoryDbContext?.Dispose();
-            _inMemoryDbContext = null;
+            DbContext?.Dispose();
+            DbContext = null;
             UserService = null;
         }
     }
