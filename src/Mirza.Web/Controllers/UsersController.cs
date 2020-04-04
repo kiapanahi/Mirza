@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Mirza.Web.Models;
@@ -9,6 +10,7 @@ using Mirza.Web.Services.User;
 namespace Mirza.Web.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/[controller]")]
     [Produces("application/json", "text/plain", "text/html")]
     [Consumes("application/json")]
