@@ -8,15 +8,8 @@ namespace Mirza.Web.UnitTests.ServiceTests.UserServiceTests
 {
     public class RegisterUserTests : UserServiceTestBase
     {
-
         [Fact]
-        public async Task Register_Null_User_Throws()
-        {
-            await Assert.ThrowsAsync<ArgumentNullException>(() => UserService.Register(null));
-        }
-
-        [Fact]
-        public async Task Regsiter_Duplicate_Email_Throws()
+        public async Task Register_Duplicate_Email_Throws()
         {
             var u1 = new MirzaUser
             {
@@ -32,7 +25,7 @@ namespace Mirza.Web.UnitTests.ServiceTests.UserServiceTests
                 Email = "email@example.com"
             };
 
-            var user1RegisterResult = await UserService.Register(u1);
+            _ = await UserService.Register(u1);
 
             await Assert.ThrowsAsync<DuplicateEmailException>(() => UserService.Register(u2));
         }
@@ -48,6 +41,12 @@ namespace Mirza.Web.UnitTests.ServiceTests.UserServiceTests
             };
 
             await Assert.ThrowsAsync<UserModelValidationException>(() => UserService.Register(u));
+        }
+
+        [Fact]
+        public async Task Register_Null_User_Throws()
+        {
+            await Assert.ThrowsAsync<ArgumentNullException>(() => UserService.Register(null));
         }
 
         [Fact]
@@ -70,8 +69,7 @@ namespace Mirza.Web.UnitTests.ServiceTests.UserServiceTests
             Assert.Equal(u.LastName, result.LastName);
             Assert.True(result.IsActive);
 
-            Assert.NotNull(result.Teams);
-            Assert.Equal(0, result.Teams.Count);
+            Assert.Null(result.Team);
 
             Assert.NotNull(result.AccessKeys);
             Assert.Equal(0, result.AccessKeys.Count);

@@ -11,10 +11,10 @@ namespace Mirza.Web.Services.User
 {
     public class UserService : IUserService
     {
-        private readonly UserValidator _userValidator;
-        private readonly WorkLogValidator _workLogValidator;
         private readonly MirzaDbContext _dbContext;
         private readonly ILogger<UserService> _logger;
+        private readonly UserValidator _userValidator;
+        private readonly WorkLogValidator _workLogValidator;
 
         public UserService(MirzaDbContext dbContext, ILogger<UserService> logger)
         {
@@ -34,14 +34,14 @@ namespace Mirza.Web.Services.User
             var validationResult = _workLogValidator.Validate(workLog);
             if (!validationResult.IsValid)
             {
-                throw new WorkLogModelValidationException(validationResult.Errors.Select(e => e.ErrorMessage).ToArray());
+                throw new WorkLogModelValidationException(validationResult
+                                                          .Errors.Select(e => e.ErrorMessage).ToArray());
             }
 
             var user = await _dbContext.UserSet
-                .Include(u => u.Teams)
-                .Include(u => u.WorkLog)
-                .SingleOrDefaultAsync(s => s.IsActive && s.Id == userId)
-                .ConfigureAwait(false);
+                                       .Include(u => u.WorkLog)
+                                       .SingleOrDefaultAsync(s => s.IsActive && s.Id == userId)
+                                       .ConfigureAwait(false);
 
             if (user == null)
             {
@@ -50,17 +50,9 @@ namespace Mirza.Web.Services.User
 
             var overlappingLogExists = user.WorkLog.Any(w =>
                 w.EntryDate.Date == workLog.EntryDate.Date &&
-                ((workLog.StartTime >= w.StartTime && workLog.StartTime < w.EndTime)
-                || (workLog.EndTime > w.StartTime && workLog.StartTime < w.StartTime)));
-
-            //var overlappingLogExists = await _dbContext.WorkLogSet
-            //    .AnyAsync(w => w.UserId == user.Id &&
-            //    w.EntryDate.Date == workLog.EntryDate.Date &&
-            //    ((workLog.StartTime >= w.StartTime && workLog.StartTime < w.EndTime)
-            //    || (workLog.EndTime > w.StartTime && workLog.StartTime < w.StartTime))
-            //    )
-            //    .ConfigureAwait(false);
-
+                (workLog.StartTime >= w.StartTime && workLog.StartTime < w.EndTime
+                 || workLog.EndTime > w.StartTime && workLog.StartTime < w.StartTime));
+            
             if (overlappingLogExists)
             {
                 throw new InvalidOperationException("Can not log overlapping work periods for a given date");
@@ -68,7 +60,6 @@ namespace Mirza.Web.Services.User
 
             try
             {
-
                 var addResult = await _dbContext.WorkLogSet.AddAsync(new WorkLog
                 {
                     Description = workLog.Description ?? "-",
@@ -76,9 +67,7 @@ namespace Mirza.Web.Services.User
                     EntryDate = workLog.EntryDate.Date,
                     StartTime = workLog.StartTime,
                     EndTime = workLog.EndTime,
-
-                    // TODO: implement proper solution to find user's team. (from claims maybe?!)
-                    TeamId = user.Teams.FirstOrDefault()?.Id ?? -1,
+                    TeamId = user.TeamId,
                     UserId = user.Id
                 });
 
@@ -105,24 +94,28 @@ namespace Mirza.Web.Services.User
                 throw;
             }
         }
-        public async Task<MirzaUser> GetUser(int id) => await _dbContext.UserSet.FindAsync(id);
+
+        public async Task<MirzaUser> GetUser(int id)
+        {
+            return await _dbContext.UserSet.FindAsync(id);
+        }
 
         public async Task<MirzaUser> GetUserWithActiveAccessKey(string accessKey)
         {
             try
             {
-                var user = await _dbContext.UserSet
-                    .Include(a => a.AccessKeys)
-                    .Include(t => t.Teams).ThenInclude(t => t.Team)
-                    .SingleOrDefaultAsync(
-                            user => user.IsActive &&
-                            user.AccessKeys.Any(
-                                    ak => ak.State == AccessKeyState.Active &&
-                                    ak.Expiration >= DateTime.UtcNow &&
-                                    accessKey == ak.Key)
-                            )
-                    .ConfigureAwait(false);
-                return user;
+                var foundUser = await _dbContext.UserSet
+                                                .Include(a => a.AccessKeys)
+                                                .Include(t => t.Team)
+                                                .SingleOrDefaultAsync(
+                                                    user => user.IsActive &&
+                                                            user.AccessKeys.Any(
+                                                                ak => ak.State == AccessKeyState.Active &&
+                                                                      ak.Expiration >= DateTime.UtcNow &&
+                                                                      accessKey == ak.Key)
+                                                )
+                                                .ConfigureAwait(false);
+                return foundUser;
             }
             catch (Exception e)
             {
@@ -145,8 +138,8 @@ namespace Mirza.Web.Services.User
             }
 
             var duplicateEmail = await _dbContext.UserSet
-                .AnyAsync(u => u.IsActive && u.Email == user.Email)
-                .ConfigureAwait(false);
+                                                 .AnyAsync(u => u.IsActive && u.Email == user.Email)
+                                                 .ConfigureAwait(false);
 
             if (duplicateEmail)
             {
@@ -164,7 +157,6 @@ namespace Mirza.Web.Services.User
                 _logger.LogError("Exception occured while saving user entity", e);
                 throw;
             }
-
         }
     }
 }

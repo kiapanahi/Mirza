@@ -12,11 +12,12 @@ namespace Mirza.Web.UnitTests.ServiceTests.UserServiceTests
     public class UserServiceTestBase : IDisposable
     {
         private MirzaDbContext _inMemoryDbContext;
+
         public UserServiceTestBase()
         {
             var contextOptions = new DbContextOptionsBuilder<MirzaDbContext>()
-                .UseInMemoryDatabase(Guid.NewGuid().ToString())
-                .Options;
+                                 .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                                 .Options;
 
             _inMemoryDbContext = new MirzaDbContext(contextOptions);
 
@@ -31,12 +32,19 @@ namespace Mirza.Web.UnitTests.ServiceTests.UserServiceTests
             SeedUsers(context);
         }
 
-        private void SeedUsers(MirzaDbContext context)
+        private static void SeedUsers(MirzaDbContext context)
         {
-            var users = Enumerable.Range(1, 5).Select(idx => new MirzaUser
+            var users = Enumerable.Range(1, 30).Select(idx => new MirzaUser
             {
-                AccessKeys = new List<AccessKey> { new AccessKey("01234567890123456789012345678901") },
+                AccessKeys = new List<AccessKey>
+                {
+                    new AccessKey($"012345678901234567890123456789{idx.ToString().PadLeft(2, '0')}")
+                        {OwnerId = idx, State = AccessKeyState.Active, Expiration = DateTime.Parse("2020-10-01")},
+                    new AccessKey("abcdefabcdefabcdefabcdefabcdefab")
+                        {OwnerId = idx, State = AccessKeyState.Inative, Expiration = DateTime.Parse("2020-10-01")}
+                },
                 Email = $"user{idx}@example.com",
+                TeamId = idx % 5 + 1,
                 IsActive = true,
                 FirstName = $"firstname {idx}",
                 LastName = $"lastname {idx}"
@@ -45,9 +53,9 @@ namespace Mirza.Web.UnitTests.ServiceTests.UserServiceTests
             context.SaveChanges();
         }
 
-        private void SeedTeams(MirzaDbContext context)
+        private static void SeedTeams(MirzaDbContext context)
         {
-            var teams = Enumerable.Range(1, 5).Select(idx => new Team { Name = $"team-{idx}" });
+            var teams = Enumerable.Range(1, 5).Select(idx => new Team {Name = $"team-{idx}"});
             context.TeamSet.AddRange(teams);
             context.SaveChanges();
         }
