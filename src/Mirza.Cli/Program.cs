@@ -8,13 +8,15 @@ using System.Threading.Tasks;
 
 namespace Mirza.Cli
 {
-    internal class Program
+    internal static class Program
     {
-        private static readonly HttpClient _httpClient = new HttpClient()
+        private const string ConfigFileName = ".mirza";
+
+        private static readonly HttpClient HttpClient = new HttpClient
         {
             BaseAddress = new Uri(@"https://localhost:5001/")
         };
-        private const string ConfigFileName = ".mirza";
+
         private static async Task Main(string[] args)
         {
             if (!File.Exists(ConfigFileName))
@@ -22,7 +24,7 @@ namespace Mirza.Cli
                 using var stream = File.Create(ConfigFileName);
             }
 
-            var mirzaCommand = new RootCommand("Mirza - Your friendly worklog assistant");
+            var mirzaCommand = new RootCommand("Mirza - Your friendly work log assistant");
 
             AddDoroodCommand(mirzaCommand);
             AddBedroodCommand(mirzaCommand);
@@ -39,22 +41,17 @@ namespace Mirza.Cli
                 return false;
             }
 
-            if (fileContent[0].Length != 32)
-            {
-                return false;
-            }
-
-            return true;
+            return fileContent[0].Length == 32;
         }
 
-        private static void AddDoroodCommand(RootCommand rootCmd)
+        private static void AddDoroodCommand(Command rootCmd)
         {
             var cmd = new Command("dorood", "set AccessKey for future use");
 
             var accessKeyArg = new Argument<string>("access-key")
             {
                 Description = "Set the access-key",
-                Arity = ArgumentArity.ExactlyOne,
+                Arity = ArgumentArity.ExactlyOne
             };
 
             cmd.AddArgument(accessKeyArg);
@@ -63,7 +60,7 @@ namespace Mirza.Cli
             rootCmd.AddCommand(cmd);
         }
 
-        private static void AddBedroodCommand(RootCommand rootCmd)
+        private static void AddBedroodCommand(Command rootCmd)
         {
             var cmd = new Command("bedrood", "UNSET AccessKey")
             {
@@ -77,7 +74,7 @@ namespace Mirza.Cli
             rootCmd.AddCommand(cmd);
         }
 
-        private static void AddBenevisCommand(RootCommand rootCmd)
+        private static void AddBenevisCommand(Command rootCmd)
         {
             var logCommand = new Command("benevis", "record a work log");
 
@@ -117,7 +114,7 @@ namespace Mirza.Cli
 
         private static async Task HandleAddAccessKeyCommand(string accessKey)
         {
-            var result = await _httpClient.GetAsync($"/api/users/detail/{accessKey}");
+            var result = await HttpClient.GetAsync($"/api/users/detail/{accessKey}");
             if (!result.IsSuccessStatusCode)
             {
                 Console.ForegroundColor = ConsoleColor.Yellow;
@@ -125,6 +122,7 @@ namespace Mirza.Cli
                 Console.ResetColor();
                 return;
             }
+
             var content = await result.Content.ReadAsStringAsync();
 
             File.WriteAllText(ConfigFileName, accessKey);
@@ -133,6 +131,7 @@ namespace Mirza.Cli
 
             Console.WriteLine($"access key set to {accessKey}");
         }
+
         private static void HandleLogWorkCommand(TimeSpan from, TimeSpan to, string desc, string details)
         {
             if (!IsAuthenticated())
@@ -150,7 +149,7 @@ namespace Mirza.Cli
             {
                 IgnoreReadOnlyProperties = true,
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                PropertyNameCaseInsensitive = true,
+                PropertyNameCaseInsensitive = true
             });
 
             Console.WriteLine($"Dear {model.FirstName}, I'm adding a work log for you with the following details:");
