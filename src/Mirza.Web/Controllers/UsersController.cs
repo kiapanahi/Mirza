@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -122,6 +124,85 @@ namespace Mirza.Web.Controllers
                 _logger.LogError(e.ToString());
                 return StatusCode(500, $"Internal Error. LogId: {HttpContext.TraceIdentifier}");
             }
+        }
+
+        [HttpPost("access-key/generate")]
+        public async Task<ActionResult<AccessKey>> GenerateAccessKey()
+        {
+            var userIdClaimValue = User.Claims
+                .FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value ?? "-1";
+
+            if (int.TryParse(userIdClaimValue, out var userId))
+            {
+                try
+                {
+                    var newAccessKey = await _userService.AddAccessKey(userId).ConfigureAwait(false);
+                    return Ok(new
+                    {
+                        newAccessKey.Expiration,
+                        newAccessKey.Key,
+                        newAccessKey.State,
+                        newAccessKey.IsActive
+                    });
+                }
+                catch (AccessKeyException e)
+                {
+                    return StatusCode(500, new
+                    {
+                        ErrorMessage = "Error while generating new access key",
+                        ErrorDetail = e.Message
+                    });
+                }
+                catch (Exception)
+                {
+                    return StatusCode(500, new
+                    {
+                        ErrorMessage = "Error while generating new access key",
+                        ErrorDetail = $"Internal Error. LogId: {HttpContext.TraceIdentifier}"
+                    });
+                }
+            }
+            return BadRequest(new { ErrorMessage = "Could not acquire user id from request" });
+        }
+
+        [HttpDelete("access-key/{accessKey}")]
+        public async Task<ActionResult<AccessKey>> DeactivateAccessKey(string accessKey)
+        {
+            var userIdClaimValue = User.Claims
+                .FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value ?? "-1";
+
+            if (int.TryParse(userIdClaimValue, out var userId))
+            {
+                try
+                {
+                    var deactivatedAccessKey = await _userService.DeactivateAccessKey(userId, accessKey).ConfigureAwait(false);
+                    return Ok(new
+                    {
+                        deactivatedAccessKey.Expiration,
+                        deactivatedAccessKey.Key,
+                        deactivatedAccessKey.State,
+                        deactivatedAccessKey.IsActive
+                    });
+                }
+                catch (AccessKeyException e)
+                {
+                    return StatusCode(500, new
+                    {
+                        ErrorMessage = "Error while deactivating access key",
+                        ErrorDetail = e.Message
+                    });
+                }
+                catch (Exception)
+                {
+                    return StatusCode(500, new
+                    {
+                        ErrorMessage = "Error while generating new access key",
+                        ErrorDetail = $"Internal Error. LogId: {HttpContext.TraceIdentifier}"
+                    });
+                }
+            }
+
+            return BadRequest(new { ErrorMessage = "Could not acquire user id from request" });
         }
     }
 }
