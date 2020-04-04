@@ -27,7 +27,7 @@ namespace Mirza.Web.Models
 
         public int Id { get; set; }
         public string Key { get; set; }
-        public AccessKeyState State { get; set; }
+        public AccessKeyState State { get; set; } = AccessKeyState.Active;
         public DateTime Expiration { get; set; }
 
         public int OwnerId { get; set; }
