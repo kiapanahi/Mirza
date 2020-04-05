@@ -1,8 +1,11 @@
 ﻿using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.Globalization;
 using System.IO;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -10,19 +13,22 @@ namespace Mirza.Cli
 {
     internal static class Program
     {
-        private const string ConfigFileName = ".mirza";
-
         private static readonly HttpClient HttpClient = new HttpClient
         {
             BaseAddress = new Uri(@"https://localhost:5001/")
         };
 
+        private static readonly string MirzaConfigDirectory = Path.Join(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "Mirza");
+
+        private static string ConfigFile => Path.Join(MirzaConfigDirectory, ".mirza");
+
         private static async Task Main(string[] args)
         {
-            if (!File.Exists(ConfigFileName))
-            {
-                using var stream = File.Create(ConfigFileName);
-            }
+            EnsureMirzaDirectory();
+
+            EnsureMirzaConfigFile();
 
             var mirzaCommand = new RootCommand("Mirza - Your friendly work log assistant");
 
@@ -33,9 +39,30 @@ namespace Mirza.Cli
             _ = await mirzaCommand.InvokeAsync(args);
         }
 
+        private static void EnsureMirzaConfigFile()
+        {
+            if (!File.Exists(ConfigFile))
+            {
+                File.Create(ConfigFile).Close();
+            }
+
+            if ((File.GetAttributes(ConfigFile) & FileAttributes.Hidden) == 0)
+            {
+                File.SetAttributes(ConfigFile, File.GetAttributes(ConfigFile) | FileAttributes.Hidden);
+            }
+        }
+
+        private static void EnsureMirzaDirectory()
+        {
+            if (!Directory.Exists(MirzaConfigDirectory))
+            {
+                _ = Directory.CreateDirectory(MirzaConfigDirectory);
+            }
+        }
+
         private static bool IsAuthenticated()
         {
-            var fileContent = File.ReadAllLines(ConfigFileName);
+            var fileContent = File.ReadAllLines(ConfigFile);
             if (fileContent.Length == 0)
             {
                 return false;
@@ -67,7 +94,10 @@ namespace Mirza.Cli
                 Handler = CommandHandler.Create(() =>
                 {
                     Console.WriteLine("Mirza will miss you.");
-                    File.WriteAllText(ConfigFileName, string.Empty);
+                    HttpClient.DefaultRequestHeaders.Authorization = null;
+
+                    File.Delete(ConfigFile);
+                    EnsureMirzaConfigFile();
                 })
             };
 
@@ -114,6 +144,7 @@ namespace Mirza.Cli
 
         private static async Task HandleAddAccessKeyCommand(string accessKey)
         {
+            HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("AccessKey", accessKey);
             var result = await HttpClient.GetAsync($"/api/users/detail/{accessKey}");
             if (!result.IsSuccessStatusCode)
             {
@@ -125,9 +156,17 @@ namespace Mirza.Cli
 
             var content = await result.Content.ReadAsStringAsync();
 
-            File.WriteAllText(ConfigFileName, accessKey);
-            File.AppendAllText(ConfigFileName, Environment.NewLine);
-            File.AppendAllText(ConfigFileName, content);
+            // TODO: implement a better approach!
+            File.Delete(ConfigFile);
+            EnsureMirzaConfigFile();
+            await using (var s = new StreamWriter(ConfigFile, true, Encoding.UTF8))
+            {
+                s.WriteLine(accessKey);
+                s.Write(content);
+            }
+            // File.WriteAllText(ConfigFile, accessKey,Encoding.UTF8);
+            // File.AppendAllText(ConfigFile, Environment.NewLine);
+            // File.AppendAllText(ConfigFile, content);
 
             Console.WriteLine($"access key set to {accessKey}");
         }
@@ -144,7 +183,7 @@ namespace Mirza.Cli
                 return;
             }
 
-            var json = File.ReadAllLines(ConfigFileName)[1];
+            var json = File.ReadAllLines(ConfigFile)[1];
             var model = JsonSerializer.Deserialize<UserModel>(json, new JsonSerializerOptions
             {
                 IgnoreReadOnlyProperties = true,
@@ -154,9 +193,9 @@ namespace Mirza.Cli
 
             Console.WriteLine($"Dear {model.FirstName}, I'm adding a work log for you with the following details:");
 
-            Console.WriteLine($"Date: {DateTime.Today.Date: yyyy-MM-dd} from {from} to {to}\tduration: {to - from}");
-            Console.WriteLine($"Description: {desc}");
-            Console.WriteLine($"Details: {details}");
+            Console.WriteLine($"{GetCurrentDateInPersian()}:\t{from} - {to}\t(duration: {to - from})");
+            Console.WriteLine($"Description:\t{desc ?? "-"}");
+            Console.WriteLine($"Details:\t{details ?? "-"}");
 
             Console.WriteLine("if the information is correct, press 'y' otherwise any other key");
             Console.Write(">");
@@ -177,6 +216,18 @@ namespace Mirza.Cli
                 Console.WriteLine("discarding...");
             }
         }
+
+        private static string GetPersianDate(DateTime dt)
+        {
+            var pc = new PersianCalendar();
+
+            var year = pc.GetYear(dt);
+            var month = pc.GetMonth(dt).ToString().PadLeft(2, '0');
+            var day = pc.GetDayOfMonth(dt).ToString().PadLeft(2, '0');
+            return $"{year}/{month}/{day}";
+        }
+
+        private static string GetCurrentDateInPersian() => GetPersianDate(DateTime.Today);
     }
 
     internal class UserModel
