@@ -7,8 +7,6 @@ namespace Mirza.Web.Models
         public int Id { get; set; }
         public int UserId { get; set; }
         public MirzaUser User { get; set; }
-        public int TeamId { get; set; }
-        public Team Team { get; set; }
         public DateTime EntryDate { get; set; }
         public TimeSpan StartTime { get; set; }
         public TimeSpan EndTime { get; set; }

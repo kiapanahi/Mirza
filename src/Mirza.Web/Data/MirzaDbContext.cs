@@ -72,10 +72,6 @@ namespace Mirza.Web.Data
                      .WithOne(a => a.Team)
                      .HasForeignKey(a => a.TeamId)
                      .OnDelete(DeleteBehavior.NoAction);
-
-                    b.HasMany(a => a.WorkLog)
-                     .WithOne(a => a.Team)
-                     .HasForeignKey(a => a.TeamId);
                 })
                 .Entity<WorkLog>(b =>
                 {

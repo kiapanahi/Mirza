@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Mirza.Web.Dto;
 using Mirza.Web.Models;
 using Mirza.Web.Services.User;
 
@@ -18,8 +19,8 @@ namespace Mirza.Web.Controllers
     [Consumes("application/json")]
     public class UsersController : ControllerBase
     {
-        private readonly IUserService _userService;
         private readonly ILogger<UsersController> _logger;
+        private readonly IUserService _userService;
 
         public UsersController(IUserService userService, ILogger<UsersController> logger)
         {
@@ -28,7 +29,10 @@ namespace Mirza.Web.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<MirzaUser>>> List() => await Task.FromResult(StatusCode(501, "Not Implemented")).ConfigureAwait(false);
+        public async Task<ActionResult<IEnumerable<MirzaUser>>> List()
+        {
+            return await Task.FromResult(StatusCode(501, "Not Implemented")).ConfigureAwait(false);
+        }
 
 
         [HttpGet("{id}")]
@@ -41,6 +45,7 @@ namespace Mirza.Web.Controllers
                 {
                     return NotFound();
                 }
+
                 return Ok(new
                 {
                     user.Id,
@@ -67,6 +72,7 @@ namespace Mirza.Web.Controllers
                 {
                     return NotFound();
                 }
+
                 return Ok(new
                 {
                     user.FirstName,
@@ -89,7 +95,7 @@ namespace Mirza.Web.Controllers
             try
             {
                 var registeredUser = await _userService.Register(user).ConfigureAwait(false);
-                return CreatedAtAction(nameof(Detail), new { id = registeredUser.Id }, null);
+                return CreatedAtAction(nameof(Detail), new {id = registeredUser.Id}, null);
             }
             catch (ArgumentNullException)
             {
@@ -130,7 +136,7 @@ namespace Mirza.Web.Controllers
         public async Task<ActionResult<AccessKey>> GenerateAccessKey()
         {
             var userIdClaimValue = User.Claims
-                .FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value ?? "-1";
+                                       .FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value ?? "-1";
 
             if (int.TryParse(userIdClaimValue, out var userId))
             {
@@ -162,20 +168,22 @@ namespace Mirza.Web.Controllers
                     });
                 }
             }
-            return BadRequest(new { ErrorMessage = "Could not acquire user id from request" });
+
+            return BadRequest(new {ErrorMessage = "Could not acquire user id from request"});
         }
 
         [HttpDelete("access-key/{accessKey}")]
         public async Task<ActionResult<AccessKey>> DeactivateAccessKey(string accessKey)
         {
             var userIdClaimValue = User.Claims
-                .FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value ?? "-1";
+                                       .FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value ?? "-1";
 
             if (int.TryParse(userIdClaimValue, out var userId))
             {
                 try
                 {
-                    var deactivatedAccessKey = await _userService.DeactivateAccessKey(userId, accessKey).ConfigureAwait(false);
+                    var deactivatedAccessKey =
+                        await _userService.DeactivateAccessKey(userId, accessKey).ConfigureAwait(false);
                     return Ok(new
                     {
                         deactivatedAccessKey.Expiration,
@@ -202,7 +210,77 @@ namespace Mirza.Web.Controllers
                 }
             }
 
-            return BadRequest(new { ErrorMessage = "Could not acquire user id from request" });
+            return BadRequest(new {ErrorMessage = "Could not acquire user id from request"});
+        }
+
+        [HttpPost("worklog")]
+        public async Task<ActionResult<WorkLog>> AddWorkLog(AddWorkLogInput input)
+        {
+            if (input == null)
+            {
+                return BadRequest(new {ErrorMessage = "Input was null"});
+            }
+
+            if (!TimeSpan.TryParse(input.Start, out var startTime))
+            {
+                return BadRequest(new {ErrorMessage = "Invalid format for 'start' field"});
+            }
+
+            if (!TimeSpan.TryParse(input.End, out var endTime))
+            {
+                return BadRequest(new {ErrorMessage = "Invalid format for 'end' field"});
+            }
+
+            var userIdClaimValue = User.Claims
+                                       .FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value ?? "-1";
+
+            if (!int.TryParse(userIdClaimValue, out var userId))
+            {
+                return BadRequest(new {ErrorMessage = "Could not acquire user id from request"});
+            }
+
+            try
+            {
+                var model = new WorkLog
+                {
+                    StartTime = startTime,
+                    EndTime = endTime,
+                    Description = input.Description ?? "-",
+                    Details = input.Detail ?? "-",
+                    EntryDate = DateTime.Today.Date
+                };
+                var log = await _userService.AddWorkLog(userId, model)
+                                            .ConfigureAwait(false);
+                return Ok(new {log.Id});
+            }
+            catch (ArgumentNullException)
+            {
+                return BadRequest(new {ErrorMessage = "Input was null"});
+            }
+            catch (WorkLogModelValidationException e)
+            {
+                return BadRequest(new
+                {
+                    ErrorMessage = "Input validation failed",
+                    ErrorDetails = e.ValidationErrors
+                });
+            }
+            catch (ArgumentException)
+            {
+                return BadRequest(new {ErrorMessage = "Invalid user"});
+            }
+            catch (InvalidOperationException)
+            {
+                return BadRequest(new {ErrorMessage = "Overlapping times!"});
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    ErrorMessage = "Error while adding work log",
+                    ErrorDetail = $"Internal Error. LogId: {HttpContext.TraceIdentifier}"
+                });
+            }
         }
     }
 }

@@ -30,8 +30,8 @@ namespace Mirza.Web.Services.User
         public async Task<AccessKey> AddAccessKey(int userId)
         {
             var user = await _dbContext.UserSet.Include(u => u.AccessKeys)
-                .SingleOrDefaultAsync(s => s.Id == userId)
-                .ConfigureAwait(false);
+                                       .SingleOrDefaultAsync(s => s.Id == userId)
+                                       .ConfigureAwait(false);
 
             if (user == null)
             {
@@ -58,14 +58,13 @@ namespace Mirza.Web.Services.User
                 _logger.LogError($"Exception occured while adding new access key for user {userId}", e);
                 throw;
             }
-
         }
 
         public async Task<AccessKey> DeactivateAccessKey(int userId, string accessKey)
         {
             var user = await _dbContext.UserSet.Include(u => u.AccessKeys)
-                   .SingleOrDefaultAsync(s => s.Id == userId)
-                   .ConfigureAwait(false);
+                                       .SingleOrDefaultAsync(s => s.Id == userId)
+                                       .ConfigureAwait(false);
 
             if (user == null)
             {
@@ -82,7 +81,8 @@ namespace Mirza.Web.Services.User
                 throw new AccessKeyException("Invalid access key");
             }
 
-            var found = user.AccessKeys.Single(a => string.Equals(accessKey, a.Key, StringComparison.OrdinalIgnoreCase));
+            var found = user.AccessKeys.Single(a =>
+                string.Equals(accessKey, a.Key, StringComparison.OrdinalIgnoreCase));
             if (!found.IsActive)
             {
                 // Do noting here, the access key is already not active due to
@@ -174,10 +174,9 @@ namespace Mirza.Web.Services.User
                     EntryDate = workLog.EntryDate.Date,
                     StartTime = workLog.StartTime,
                     EndTime = workLog.EndTime,
-                    TeamId = user.TeamId,
                     UserId = user.Id
                 });
-
+                await _dbContext.SaveChangesAsync().ConfigureAwait(false);
                 return addResult.Entity;
             }
             catch (Exception e)

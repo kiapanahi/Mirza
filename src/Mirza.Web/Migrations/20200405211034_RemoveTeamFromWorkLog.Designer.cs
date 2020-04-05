@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Mirza.Web.Data;
 
 namespace Mirza.Web.Migrations
 {
     [DbContext(typeof(MirzaDbContext))]
-    partial class MirzaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20200405211034_RemoveTeamFromWorkLog")]
+    partial class RemoveTeamFromWorkLog
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -122,10 +124,15 @@ namespace Mirza.Web.Migrations
                     b.Property<TimeSpan>("StartTime")
                         .HasColumnType("time");
 
+                    b.Property<int?>("TeamId")
+                        .HasColumnType("int");
+
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("TeamId");
 
                     b.HasIndex("UserId");
 
@@ -152,6 +159,10 @@ namespace Mirza.Web.Migrations
 
             modelBuilder.Entity("Mirza.Web.Models.WorkLog", b =>
                 {
+                    b.HasOne("Mirza.Web.Models.Team", null)
+                        .WithMany("WorkLog")
+                        .HasForeignKey("TeamId");
+
                     b.HasOne("Mirza.Web.Models.MirzaUser", "User")
                         .WithMany("WorkLog")
                         .HasForeignKey("UserId")
