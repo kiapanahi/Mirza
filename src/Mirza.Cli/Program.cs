@@ -3,6 +3,7 @@ using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -21,6 +22,8 @@ namespace Mirza.Cli
         private static readonly string MirzaConfigDirectory = Path.Join(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "Mirza");
+
+        private static readonly string[] ValidAcceptResponses = {string.Empty, "Y", "YES"};
 
         private static string ConfigFile => Path.Join(MirzaConfigDirectory, ".mirza");
 
@@ -94,7 +97,6 @@ namespace Mirza.Cli
                 Handler = CommandHandler.Create(() =>
                 {
                     Console.WriteLine("Mirza will miss you.");
-                    HttpClient.DefaultRequestHeaders.Authorization = null;
 
                     File.Delete(ConfigFile);
                     EnsureMirzaConfigFile();
@@ -144,8 +146,12 @@ namespace Mirza.Cli
 
         private static async Task HandleAddAccessKeyCommand(string accessKey)
         {
-            HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("AccessKey", accessKey);
-            var result = await HttpClient.GetAsync($"/api/users/detail/{accessKey}");
+            var request = new HttpRequestMessage(HttpMethod.Get, $"/api/users/detail/{accessKey}")
+            {
+                Headers = {Authorization = new AuthenticationHeaderValue("AccessKey", accessKey)}
+            };
+
+            var result = await HttpClient.SendAsync(request);
             if (!result.IsSuccessStatusCode)
             {
                 Console.ForegroundColor = ConsoleColor.Yellow;
@@ -164,14 +170,11 @@ namespace Mirza.Cli
                 s.WriteLine(accessKey);
                 s.Write(content);
             }
-            // File.WriteAllText(ConfigFile, accessKey,Encoding.UTF8);
-            // File.AppendAllText(ConfigFile, Environment.NewLine);
-            // File.AppendAllText(ConfigFile, content);
 
             Console.WriteLine($"access key set to {accessKey}");
         }
 
-        private static void HandleLogWorkCommand(TimeSpan from, TimeSpan to, string desc, string details)
+        private static async Task HandleLogWorkCommand(TimeSpan from, TimeSpan to, string desc, string details)
         {
             if (!IsAuthenticated())
             {
@@ -183,6 +186,88 @@ namespace Mirza.Cli
                 return;
             }
 
+            var accessKey = File.ReadAllLines(ConfigFile).First();
+
+            var user = GetUserFromConfigFile();
+
+            var consented = GetConsentForSend(from, to, desc, details, user);
+
+            if (consented)
+            {
+                await SendWorkLogToServerAndHandleResponse(from, to, desc, details, accessKey);
+            }
+            else
+            {
+                Console.WriteLine("discarding...");
+            }
+        }
+
+        private static async Task SendWorkLogToServerAndHandleResponse(TimeSpan from, TimeSpan to, string desc,
+            string details,
+            string accessKey)
+        {
+            var requestObject = new AddWorkLogServiceInput(from, to, desc, details);
+            var serialized = JsonSerializer.Serialize(requestObject);
+            var content = new StringContent(serialized, Encoding.UTF8, "application/json");
+            var requestMessage = new HttpRequestMessage(HttpMethod.Post, "api/users/worklog")
+            {
+                Content = content,
+                Headers = {Authorization = new AuthenticationHeaderValue("AccessKey", accessKey)}
+            };
+            var httpResponse = await HttpClient.SendAsync(requestMessage);
+
+            var responseContent = await httpResponse.Content.ReadAsStringAsync();
+            if (httpResponse.IsSuccessStatusCode)
+            {
+                var successResponse = JsonSerializer.Deserialize<AddWorkLogServiceSuccessResponse>(responseContent,
+                    new JsonSerializerOptions
+                    {
+                        IgnoreNullValues = false,
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                        PropertyNameCaseInsensitive = false
+                    });
+                Console.Write($"Done! Work log id: {successResponse.Id}");
+            }
+            else
+            {
+                var errorResponse =
+                    JsonSerializer.Deserialize<AddWorkLogServiceErrorResponse>(responseContent,
+                        new JsonSerializerOptions
+                        {
+                            IgnoreNullValues = false,
+                            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                            PropertyNameCaseInsensitive = false
+                        });
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine("oops!");
+                Console.WriteLine(errorResponse.ErrorMessage);
+                if (errorResponse.ErrorDetails != null)
+                {
+                    Console.WriteLine(errorResponse.ErrorDetails);
+                }
+
+                Console.ResetColor();
+            }
+        }
+
+        private static bool GetConsentForSend(TimeSpan from, TimeSpan to, string desc, string details, UserModel user)
+        {
+            Console.WriteLine($"Dear {user.FirstName}, I'm adding a work log for you with the following details:");
+            Console.WriteLine();
+            Console.WriteLine($"\t{GetCurrentDateInPersian()}:\t{from} - {to}\t(duration: {to - from})");
+            Console.WriteLine($"\tDescription:\t{desc ?? "-"}");
+            Console.WriteLine($"\tDetails:\t{details ?? "-"}");
+            Console.WriteLine();
+            Console.WriteLine("if the information is correct, press 'y' otherwise any other key (default: y)");
+            Console.Write(">");
+            var response = Console.ReadLine();
+            var sendToServer = response != null &&
+                               ValidAcceptResponses.Contains(response.ToUpperInvariant());
+            return sendToServer;
+        }
+
+        private static UserModel GetUserFromConfigFile()
+        {
             var json = File.ReadAllLines(ConfigFile)[1];
             var model = JsonSerializer.Deserialize<UserModel>(json, new JsonSerializerOptions
             {
@@ -190,31 +275,7 @@ namespace Mirza.Cli
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
                 PropertyNameCaseInsensitive = true
             });
-
-            Console.WriteLine($"Dear {model.FirstName}, I'm adding a work log for you with the following details:");
-
-            Console.WriteLine($"{GetCurrentDateInPersian()}:\t{from} - {to}\t(duration: {to - from})");
-            Console.WriteLine($"Description:\t{desc ?? "-"}");
-            Console.WriteLine($"Details:\t{details ?? "-"}");
-
-            Console.WriteLine("if the information is correct, press 'y' otherwise any other key");
-            Console.Write(">");
-            var response = Console.Read();
-            var sendToServer = response switch
-            {
-                'y' => true,
-                'Y' => true,
-                _ => false
-            };
-
-            if (sendToServer)
-            {
-                Console.WriteLine("sending to server");
-            }
-            else
-            {
-                Console.WriteLine("discarding...");
-            }
+            return model;
         }
 
         private static string GetPersianDate(DateTime dt)
@@ -227,11 +288,9 @@ namespace Mirza.Cli
             return $"{year}/{month}/{day}";
         }
 
-        private static string GetCurrentDateInPersian() => GetPersianDate(DateTime.Today);
-    }
-
-    internal class UserModel
-    {
-        public string FirstName { get; set; }
+        private static string GetCurrentDateInPersian()
+        {
+            return GetPersianDate(DateTime.Today);
+        }
     }
 }
