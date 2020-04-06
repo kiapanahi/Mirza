@@ -12,6 +12,7 @@ namespace Mirza.Web.Models
         public TimeSpan EndTime { get; set; }
         public string Description { get; set; }
         public string Details { get; set; }
+        public DateTime LogDate { get; set; }
 
     }
 }

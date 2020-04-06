@@ -49,7 +49,7 @@ namespace Mirza.Web.Data
                     b.HasOne(a => a.Team)
                      .WithMany(a => a.Members)
                      .HasForeignKey(a => a.TeamId);
-                    
+
                     b.HasMany(a => a.AccessKeys)
                      .WithOne(a => a.Owner)
                      .HasForeignKey(a => a.OwnerId);
@@ -79,6 +79,11 @@ namespace Mirza.Web.Data
 
                     b.HasKey(a => a.Id);
 
+                    b.Property(a => a.LogDate)
+                    .IsRequired()
+                    .HasColumnType("datetime2")
+                    .HasDefaultValue(DateTime.Now);
+
                     b.Property(a => a.EntryDate)
                      .HasColumnType("date")
                      .IsRequired();
@@ -97,7 +102,7 @@ namespace Mirza.Web.Data
 
                     b.HasKey(a => a.Id);
 
-                    b.HasIndex(a => new {a.OwnerId, a.State})
+                    b.HasIndex(a => new { a.OwnerId, a.State })
                      .HasName("IDX_Owner_State");
 
                     b.Property(a => a.Key)
