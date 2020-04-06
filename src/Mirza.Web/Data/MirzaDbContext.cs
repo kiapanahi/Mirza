@@ -81,8 +81,7 @@ namespace Mirza.Web.Data
 
                     b.Property(a => a.LogDate)
                     .IsRequired()
-                    .HasColumnType("datetime2")
-                    .HasDefaultValue(DateTime.Now);
+                    .HasColumnType("datetime2");
 
                     b.Property(a => a.EntryDate)
                      .HasColumnType("date")
