@@ -1,7 +1,6 @@
 ﻿using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -38,8 +37,88 @@ namespace Mirza.Cli
             AddDoroodCommand(mirzaCommand);
             AddBedroodCommand(mirzaCommand);
             AddBenevisCommand(mirzaCommand);
+            AddCheKhabarCommand(mirzaCommand);
 
-            _ = await mirzaCommand.InvokeAsync(args);
+            await mirzaCommand.InvokeAsync(args);
+        }
+
+        private static void AddCheKhabarCommand(Command rootCmd)
+        {
+            var logCommand = new Command("chekhabar", "get work log report");
+
+            var dateArg = new Argument<DateTime>("date", () => DateTime.Today.Date)
+            {
+                Description = "Date of the report",
+                Arity = ArgumentArity.ZeroOrOne
+            };
+            logCommand.AddArgument(dateArg);
+
+            logCommand.Handler = CommandHandler.Create<DateTime>(HandleWorkLogReportCommand);
+
+            rootCmd.AddCommand(logCommand);
+        }
+
+        private static async Task HandleWorkLogReportCommand(DateTime date)
+        {
+            var dateStr = date.ToString("yyyy-MM-dd");
+            if (!IsAuthenticated())
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.Error.WriteLine("You first have to say hello to Mirza in order for him to know who you are...");
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("Try running 'mirza dorood <access-key>'");
+                Console.ResetColor();
+                return;
+            }
+
+            SetHttpClientAccessKeyHeader();
+
+            var httpResponse = await HttpClient.GetAsync($"api/users/worklog?date={dateStr}");
+            var responseContent = await httpResponse.Content.ReadAsStringAsync();
+            if (httpResponse.IsSuccessStatusCode)
+            {
+                var report = JsonSerializer.Deserialize<WorkLogReport>(responseContent, new JsonSerializerOptions
+                {
+                    IgnoreNullValues = false,
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                    PropertyNameCaseInsensitive = true
+                });
+                var entries = report.WorkLogItems.OrderBy(o => o.StartTime);
+                var border = new string('=', 10);
+                Console.WriteLine($"============== {report.ReportDatePersian} =============");
+                foreach (var item in entries)
+                {
+                    Console.WriteLine($"{item.StartTime}\t{item.EndTime}\t{item.Description} (details: {item.Details})");
+                }
+
+                Console.WriteLine($"{border} Total => {report.TotalDuration} {border}");
+            }
+            else
+            {
+                var errorResponse =
+                    JsonSerializer.Deserialize<AddWorkLogServiceErrorResponse>(responseContent,
+                        new JsonSerializerOptions
+                        {
+                            IgnoreNullValues = false,
+                            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                            PropertyNameCaseInsensitive = false
+                        });
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine("oops!");
+                Console.WriteLine(errorResponse.ErrorMessage);
+                if (errorResponse.ErrorDetails != null)
+                {
+                    Console.WriteLine(errorResponse.ErrorDetails);
+                }
+
+                Console.ResetColor();
+            }
+        }
+
+        private static void SetHttpClientAccessKeyHeader()
+        {
+            var accessKey = File.ReadAllLines(ConfigFile).First();
+            HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("AccessKey", accessKey);
         }
 
         private static void EnsureMirzaConfigFile()
@@ -59,7 +138,7 @@ namespace Mirza.Cli
         {
             if (!Directory.Exists(MirzaConfigDirectory))
             {
-                _ = Directory.CreateDirectory(MirzaConfigDirectory);
+                Directory.CreateDirectory(MirzaConfigDirectory);
             }
         }
 
@@ -254,7 +333,7 @@ namespace Mirza.Cli
         {
             Console.WriteLine($"Dear {user.FirstName}, I'm adding a work log for you with the following details:");
             Console.WriteLine();
-            Console.WriteLine($"\t{GetCurrentDateInPersian()}:\t{from} - {to}\t(duration: {to - from})");
+            Console.WriteLine($"\t{Utils.GetCurrentDateInPersian()}:\t{from} - {to}\t(duration: {to - from})");
             Console.WriteLine($"\tDescription:\t{desc ?? "-"}");
             Console.WriteLine($"\tDetails:\t{details ?? "-"}");
             Console.WriteLine();
@@ -276,21 +355,6 @@ namespace Mirza.Cli
                 PropertyNameCaseInsensitive = true
             });
             return model;
-        }
-
-        private static string GetPersianDate(DateTime dt)
-        {
-            var pc = new PersianCalendar();
-
-            var year = pc.GetYear(dt);
-            var month = pc.GetMonth(dt).ToString().PadLeft(2, '0');
-            var day = pc.GetDayOfMonth(dt).ToString().PadLeft(2, '0');
-            return $"{year}/{month}/{day}";
-        }
-
-        private static string GetCurrentDateInPersian()
-        {
-            return GetPersianDate(DateTime.Today);
         }
     }
 }

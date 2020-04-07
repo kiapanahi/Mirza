@@ -13,7 +13,8 @@ namespace Mirza.Web.Dto
 
         public TimeSpan TotalDuration
             => WorkLogItems.Aggregate(TimeSpan.Zero,
-                (current, item) => current.Add(item.EndTime - item.StartTime));
+                (current, item) => current.Add(TimeSpan.Parse(item.EndTime, CultureInfo.CurrentCulture) -
+                                               TimeSpan.Parse(item.StartTime, CultureInfo.CurrentCulture)));
 
         public string TotalDurationString
             => TotalDuration.ToString("hh\\:mm\\:ss", CultureInfo.CurrentCulture);
