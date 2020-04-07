@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Mirza.Web.Data;
+using Mirza.Web.Dto;
 using Mirza.Web.Models;
 using Mirza.Web.Validators;
 
@@ -99,6 +100,28 @@ namespace Mirza.Web.Services.User
             catch (Exception e)
             {
                 _logger.LogError($"Exception occured while deactivating accesskey: {found.Id}", e);
+                throw;
+            }
+        }
+
+        public async Task<WorkLogReportOutput> GetWorkLogReport(int userId, DateTime logDate)
+        {
+            try
+            {
+                var logItems = await _dbContext.WorkLogSet
+                                               .Where(w => w.UserId == userId && w.EntryDate.Date == logDate.Date)
+                                               .ToListAsync()
+                                               .ConfigureAwait(false);
+                return new WorkLogReportOutput
+                {
+                    WorkLogDate = logDate,
+                    WorkLogItems = logItems
+                };
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("Exception occured while compiling work log report." +
+                                 $"user: {userId} date: {logDate}", e);
                 throw;
             }
         }

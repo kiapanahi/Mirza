@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
+using Mirza.Web.Dto;
 using Mirza.Web.Models;
 
 namespace Mirza.Web.Services.User
@@ -12,5 +14,6 @@ namespace Mirza.Web.Services.User
         Task<WorkLog> AddWorkLog(int userId, WorkLog workLog);
         Task<AccessKey> AddAccessKey(int userId);
         Task<AccessKey> DeactivateAccessKey(int userId, string accessKey);
+        Task<WorkLogReportOutput> GetWorkLogReport(int userId, DateTime logDate);
     }
 }
