@@ -1,8 +1,7 @@
 {
   "profiles": {
     "Mirza.Cli": {
-      "commandName": "Project",
-      "commandLineArgs": "chekhabar"
+      "commandName": "Project"
     }
   }
 }
