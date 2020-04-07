@@ -110,6 +110,7 @@ namespace Mirza.Web.Services.User
             {
                 var logItems = await _dbContext.WorkLogSet
                                                .Where(w => w.UserId == userId && w.EntryDate.Date == logDate.Date)
+                                               .Select(s => s.ToWorkLogReportItem())
                                                .ToListAsync()
                                                .ConfigureAwait(false);
                 return new WorkLogReportOutput

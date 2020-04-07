@@ -57,7 +57,7 @@ namespace Mirza.Web.UnitTests.ServiceTests.UserServiceTests
             Assert.NotNull(report);
             Assert.Equal(DateTime.Today.Date, report.WorkLogDate);
             Assert.Equal(3, report.WorkLogItems.Count());
-            Assert.Equal(TimeSpan.Parse("6:30:00"), report.TotalDuration);
+            Assert.Equal(TimeSpan.Parse("06:30:00"), report.TotalDuration);
         }
     }
 }

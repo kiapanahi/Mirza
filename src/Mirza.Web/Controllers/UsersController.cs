@@ -282,5 +282,35 @@ namespace Mirza.Web.Controllers
                 });
             }
         }
+
+        [HttpGet("worklog")]
+        public async Task<ActionResult<WorkLogReportOutput>> GetWorkLogReport([FromQuery(Name = "date")] DateTime date)
+        {
+            var workLogDate = date == default ? DateTime.Today.Date : date;
+
+            var userIdClaimValue = User.Claims
+                                       .FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value ?? "-1";
+
+            if (!int.TryParse(userIdClaimValue, out var userId))
+            {
+                return BadRequest(new {ErrorMessage = "Could not acquire user id from request"});
+            }
+
+            try
+            {
+                var report = await _userService.GetWorkLogReport(userId, workLogDate)
+                                               .ConfigureAwait(false);
+
+                return Ok(report);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, new
+                {
+                    ErrorMessage = "Error while compiling work log report",
+                    ErrorDetail = $"Internal Error. LogId: {HttpContext.TraceIdentifier}"
+                });
+            }
+        }
     }
 }
