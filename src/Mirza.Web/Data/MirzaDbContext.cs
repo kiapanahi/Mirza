@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Mirza.Web.Models;
@@ -7,7 +8,7 @@ using Mirza.Web.Models;
 
 namespace Mirza.Web.Data
 {
-    public class MirzaDbContext : DbContext
+    public class MirzaDbContext : IdentityDbContext<MirzaUser, MirzaRole, int>
     {
         public MirzaDbContext(DbContextOptions<MirzaDbContext> options)
             : base(options)

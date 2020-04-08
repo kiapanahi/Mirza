@@ -1,14 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.AspNetCore.Identity;
 
 // ReSharper disable UnusedAutoPropertyAccessor.Global
 
 namespace Mirza.Web.Models
 {
-    public class MirzaUser
+    public class MirzaUser : IdentityUser<int>
     {
-        public int Id { get; set; }
-        public string Email { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public bool IsActive { get; set; } = true;
