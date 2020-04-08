@@ -33,6 +33,12 @@ namespace Mirza.Cli
     public class WorkLogReportItem
     {
         /// <summary>
+        /// Entry Id
+        /// </summary>
+        [JsonPropertyName("id")]
+        public int Id { get; set; }
+
+        /// <summary>
         ///     Entry date
         /// </summary>
         [JsonPropertyName("workLogDate")]

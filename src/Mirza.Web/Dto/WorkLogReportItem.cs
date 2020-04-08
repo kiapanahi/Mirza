@@ -11,6 +11,7 @@ namespace Mirza.Web.Dto
         public string EndTime { get; set; }
         public string Description { get; set; }
         public string Details { get; set; }
+        public int Id { get; set; }
     }
 
     public static class WorkLogExtensions
@@ -24,6 +25,7 @@ namespace Mirza.Web.Dto
 
             return new WorkLogReportItem
             {
+                Id = workLog.Id,
                 Description = workLog.Description,
                 Details = workLog.Details,
                 EndTime = workLog.EndTime.ToString("hh\\:mm\\:ss", CultureInfo.CurrentCulture),

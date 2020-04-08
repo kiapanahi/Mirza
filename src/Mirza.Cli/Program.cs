@@ -88,7 +88,8 @@ namespace Mirza.Cli
                 Console.WriteLine($"============== {report.ReportDatePersian} =============");
                 foreach (var item in entries)
                 {
-                    Console.WriteLine($"{item.StartTime}\t{item.EndTime}\t{item.Description} (details: {item.Details})");
+                    Console.WriteLine(
+                        $"{item.Id})   {item.StartTime}\t{item.EndTime}\t{item.Description} (details: {item.Details})");
                 }
 
                 Console.WriteLine($"{border} Total => {report.TotalDuration} {border}");
