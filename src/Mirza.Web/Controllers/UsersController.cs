@@ -13,7 +13,7 @@ using Mirza.Web.Services.User;
 namespace Mirza.Web.Controllers
 {
     [ApiController]
-    [Authorize]
+    [Authorize(AuthenticationSchemes = "AccessKey,Identity.Application")]
     [Route("api/[controller]")]
     [Produces("application/json", "text/plain", "text/html")]
     [Consumes("application/json")]
@@ -95,7 +95,7 @@ namespace Mirza.Web.Controllers
             try
             {
                 var registeredUser = await _userService.Register(user).ConfigureAwait(false);
-                return CreatedAtAction(nameof(Detail), new {id = registeredUser.Id}, null);
+                return CreatedAtAction(nameof(Detail), new { id = registeredUser.Id }, null);
             }
             catch (ArgumentNullException)
             {
@@ -169,7 +169,7 @@ namespace Mirza.Web.Controllers
                 }
             }
 
-            return BadRequest(new {ErrorMessage = "Could not acquire user id from request"});
+            return BadRequest(new { ErrorMessage = "Could not acquire user id from request" });
         }
 
         [HttpDelete("access-key/{accessKey}")]
@@ -210,7 +210,7 @@ namespace Mirza.Web.Controllers
                 }
             }
 
-            return BadRequest(new {ErrorMessage = "Could not acquire user id from request"});
+            return BadRequest(new { ErrorMessage = "Could not acquire user id from request" });
         }
 
         [HttpPost("worklog")]
@@ -218,17 +218,17 @@ namespace Mirza.Web.Controllers
         {
             if (input == null)
             {
-                return BadRequest(new {ErrorMessage = "Input was null"});
+                return BadRequest(new { ErrorMessage = "Input was null" });
             }
 
             if (!TimeSpan.TryParse(input.Start, out var startTime))
             {
-                return BadRequest(new {ErrorMessage = "Invalid format for 'start' field"});
+                return BadRequest(new { ErrorMessage = "Invalid format for 'start' field" });
             }
 
             if (!TimeSpan.TryParse(input.End, out var endTime))
             {
-                return BadRequest(new {ErrorMessage = "Invalid format for 'end' field"});
+                return BadRequest(new { ErrorMessage = "Invalid format for 'end' field" });
             }
 
             var userIdClaimValue = User.Claims
@@ -236,7 +236,7 @@ namespace Mirza.Web.Controllers
 
             if (!int.TryParse(userIdClaimValue, out var userId))
             {
-                return BadRequest(new {ErrorMessage = "Could not acquire user id from request"});
+                return BadRequest(new { ErrorMessage = "Could not acquire user id from request" });
             }
 
             try
@@ -251,11 +251,11 @@ namespace Mirza.Web.Controllers
                 };
                 var log = await _userService.AddWorkLog(userId, model)
                                             .ConfigureAwait(false);
-                return Ok(new {log.Id});
+                return Ok(new { log.Id });
             }
             catch (ArgumentNullException)
             {
-                return BadRequest(new {ErrorMessage = "Input was null"});
+                return BadRequest(new { ErrorMessage = "Input was null" });
             }
             catch (WorkLogModelValidationException e)
             {
@@ -267,11 +267,11 @@ namespace Mirza.Web.Controllers
             }
             catch (ArgumentException)
             {
-                return BadRequest(new {ErrorMessage = "Invalid user"});
+                return BadRequest(new { ErrorMessage = "Invalid user" });
             }
             catch (InvalidOperationException)
             {
-                return BadRequest(new {ErrorMessage = "Overlapping times!"});
+                return BadRequest(new { ErrorMessage = "Overlapping times!" });
             }
             catch (Exception)
             {
@@ -293,7 +293,7 @@ namespace Mirza.Web.Controllers
 
             if (!int.TryParse(userIdClaimValue, out var userId))
             {
-                return BadRequest(new {ErrorMessage = "Could not acquire user id from request"});
+                return BadRequest(new { ErrorMessage = "Could not acquire user id from request" });
             }
 
             try
