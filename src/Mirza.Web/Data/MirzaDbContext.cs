@@ -48,18 +48,6 @@ namespace Mirza.Web.Data
 
                     b.Property(a => a.Email)
                      .IsRequired();
-
-                    //b.HasOne(a => a.Team)
-                    // .WithMany(a => a.Members)
-                    // .HasForeignKey(a => a.TeamId);
-
-                    //b.HasMany(a => a.AccessKeys)
-                    // .WithOne(a => a.Owner)
-                    // .HasForeignKey(a => a.OwnerId);
-
-                    //b.HasMany(a => a.WorkLog)
-                    // .WithOne(a => a.User)
-                    // .HasForeignKey(a => a.UserId);
                 })
                 .Entity<Team>(b =>
                 {
@@ -70,21 +58,6 @@ namespace Mirza.Web.Data
                     b.Property(a => a.Name)
                      .IsRequired()
                      .HasMaxLength(50);
-
-                    b.HasData(
-                        new Team(-1, "Toucan"),
-                        new Team(-2, "Woodpecker"),
-                        new Team(-3, "Raven"),
-                        new Team(-4, "Pitta"),
-                        new Team(-5, "Phoenix"),
-                        new Team(-6, "Falcon"),
-                        new Team(-7, "DevOps")
-                        );
-
-                    //b.HasMany(a => a.Members)
-                    // .WithOne(a => a.Team)
-                    // .HasForeignKey(a => a.TeamId)
-                    // .OnDelete(DeleteBehavior.NoAction);
                 })
                 .Entity<WorkLog>(b =>
                 {
