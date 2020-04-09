@@ -1,17 +1,38 @@
 ﻿@{
-    Layout = "/Areas/Identity/Pages/_Layout.cshtml";
+    @inject SignInManager<MirzaUser> SignInManager;
+    Layout = "/Pages/Shared/_Layout.cshtml";
+    ViewData["Title"] = $"مدیریت پروفایل - {ViewData["Subtitle"]}";
+    var hasExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).Any();
 }
 
-<h1>Manage your account</h1>
-
 <div>
-    <h4>Change your account settings</h4>
-    <hr />
     <div class="row">
-        <div class="col-md-3">
-            <partial name="_ManageNav" />
+        <div class="col">
+            <nav class="navbar navbar-expand-lg bg-info">
+                <div class="container">
+                    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-bar navbar-kebab"></span>
+                        <span class="navbar-toggler-bar navbar-kebab"></span>
+                        <span class="navbar-toggler-bar navbar-kebab"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarNavDropdown">
+                        <ul class="navbar-nav">
+                            <li class="nav-item">
+                                <a class="nav-link @ManageNavPages.IndexNavClass(ViewContext)"
+                                   id="profile" asp-page="./Index">پروفایل</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @ManageNavPages.ChangePasswordNavClass(ViewContext)"
+                                   id="change-password" asp-page="./ChangePassword">کلمه عبور</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
         </div>
-        <div class="col-md-9">
+    </div>
+    <div class="row">
+        <div class="col">
             @RenderBody()
         </div>
     </div>

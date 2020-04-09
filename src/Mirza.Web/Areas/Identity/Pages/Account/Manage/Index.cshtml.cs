@@ -23,6 +23,7 @@ namespace Mirza.Web.Areas.Identity.Pages.Account.Manage
             _signInManager = signInManager;
         }
 
+        [Display(Name = "نام کاربری")]
         public string Username { get; set; }
 
         [TempData]
@@ -34,7 +35,7 @@ namespace Mirza.Web.Areas.Identity.Pages.Account.Manage
         public class InputModel
         {
             [Phone]
-            [Display(Name = "Phone number")]
+            [Display(Name = "شماره تلفن")]
             public string PhoneNumber { get; set; }
         }
 
