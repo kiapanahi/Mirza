@@ -1,0 +1,46 @@
+﻿@page
+@model AccessKeyModel
+@{
+    ViewData["Subtitle"] = "کلید‌های دسترسی";
+    ViewData["ActivePage"] = ManageNavPages.AccessKey;
+}
+
+<partial name="_StatusMessage" for="StatusMessage" />
+
+<div class="row">
+    <div class="col">
+        <div class="card">
+            <div class="card-header card-header-info">
+                <h4 class="card-title ">لیست کلید‌های شما</h4>
+                <p class="card-category">می‌تونید از این کلید‌ها تو برنامه‌ی خط-فرمانی میرزا استفاده کنید</p>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead class="text-info">
+                        <th>شناسه</th>
+                        <th>کلید</th>
+                        <th>انقضا</th>
+                        <th>وضعیت</th>
+                        </thead>
+                        <tbody>
+                            @foreach (var accessKey in Model.AccessKeyList)
+                            {
+                                <tr>
+                                    <td>@accessKey.Id</td>
+                                    <td>@accessKey.Key</td>
+                                    <td>@accessKey.Expiration</td>
+                                    <td>@accessKey.State</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
