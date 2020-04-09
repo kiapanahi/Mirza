@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -125,6 +126,40 @@ namespace Mirza.Web.UnitTests.ServiceTests.UserServiceTests
             Assert.True(Guid.TryParse(result.Key, out _));
             Assert.Equal(10, result.OwnerId);
             Assert.Equal(AccessKeyState.Inative, result.State);
+        }
+
+        [Fact]
+        public async Task GetAllAccessKeys_NonExistingUser_Throws()
+        {
+            const int nonExistingUserId = 100;
+
+            await Assert.ThrowsAsync<UserNotFoundException>(() => UserService.GetAllAccessKeys(userId: nonExistingUserId, activeOnly: false));
+
+        }
+
+        [Fact]
+        public async Task GetAllAccessKeys_ValidData_AllKeys_Returns_All_AccessKeys()
+        {
+            const int existingUserId = 10;
+
+            IEnumerable<AccessKey> result = await UserService.GetAllAccessKeys(userId: existingUserId);
+
+            Assert.NotNull(result);
+            Assert.Equal(2, result.Count());
+            Assert.Single(result, key => key.IsActive);
+            Assert.Single(result, key => !key.IsActive);
+        }
+
+        [Fact]
+        public async Task GetAllAccessKeys_ValidData_ActiveOnly_Returns_All_AccessKeys()
+        {
+            const int existingUserId = 10;
+
+            IEnumerable<AccessKey> result = await UserService.GetAllAccessKeys(userId: existingUserId, true);
+
+            Assert.NotNull(result);
+            Assert.Single(result);
+            Assert.Equal("01234567890123456789012345678910", result.First().Key);
         }
     }
 }

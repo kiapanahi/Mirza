@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
@@ -104,29 +105,6 @@ namespace Mirza.Web.Services.User
             }
         }
 
-        public async Task<WorkLogReportOutput> GetWorkLogReport(int userId, DateTime logDate)
-        {
-            try
-            {
-                var logItems = await _dbContext.WorkLogSet
-                                               .Where(w => w.UserId == userId && w.EntryDate.Date == logDate.Date)
-                                               .Select(s => s.ToWorkLogReportItem())
-                                               .ToListAsync()
-                                               .ConfigureAwait(false);
-                return new WorkLogReportOutput
-                {
-                    WorkLogDate = logDate,
-                    WorkLogItems = logItems
-                };
-            }
-            catch (Exception e)
-            {
-                _logger.LogError("Exception occured while compiling work log report." +
-                                 $"user: {userId} date: {logDate}", e);
-                throw;
-            }
-        }
-
         public async Task<MirzaUser> GetUserWithActiveAccessKey(string accessKey)
         {
             try
@@ -150,6 +128,27 @@ namespace Mirza.Web.Services.User
                 return null;
             }
         }
+
+        public async Task<IEnumerable<AccessKey>> GetAllAccessKeys(int userId, bool activeOnly = false)
+        {
+            var user = await _dbContext.UserSet.Include(u => u.AccessKeys)
+                .SingleOrDefaultAsync(a => a.Id == userId)
+                .ConfigureAwait(false);
+
+            if (user == null)
+            {
+                throw new UserNotFoundException(userId);
+            }
+
+            var keys = user.AccessKeys.ToList();
+            if (activeOnly)
+            {
+                keys = keys.Where(w => w.IsActive).ToList();
+            }
+
+            return keys;
+        }
+
 
         #endregion
 
@@ -206,6 +205,29 @@ namespace Mirza.Web.Services.User
             catch (Exception e)
             {
                 _logger.LogError("Exception occured while saving worklog", e);
+                throw;
+            }
+        }
+
+        public async Task<WorkLogReportOutput> GetWorkLogReport(int userId, DateTime logDate)
+        {
+            try
+            {
+                var logItems = await _dbContext.WorkLogSet
+                                               .Where(w => w.UserId == userId && w.EntryDate.Date == logDate.Date)
+                                               .Select(s => s.ToWorkLogReportItem())
+                                               .ToListAsync()
+                                               .ConfigureAwait(false);
+                return new WorkLogReportOutput
+                {
+                    WorkLogDate = logDate,
+                    WorkLogItems = logItems
+                };
+            }
+            catch (Exception e)
+            {
+                _logger.LogError("Exception occured while compiling work log report." +
+                                 $"user: {userId} date: {logDate}", e);
                 throw;
             }
         }

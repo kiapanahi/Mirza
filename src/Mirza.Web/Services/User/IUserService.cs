@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Mirza.Web.Dto;
 using Mirza.Web.Models;
@@ -15,5 +16,6 @@ namespace Mirza.Web.Services.User
         Task<AccessKey> AddAccessKey(int userId);
         Task<AccessKey> DeactivateAccessKey(int userId, string accessKey);
         Task<WorkLogReportOutput> GetWorkLogReport(int userId, DateTime logDate);
+        Task<IEnumerable<AccessKey>> GetAllAccessKeys(int userId, bool activeOnly = false);
     }
 }
