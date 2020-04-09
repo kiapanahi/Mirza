@@ -25,6 +25,7 @@ namespace Mirza.Web
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc();
+            services.AddRazorPages();
 
             services.AddAuthentication(o =>
                 {
@@ -76,8 +77,8 @@ namespace Mirza.Web
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapControllers();
                 endpoints.MapRazorPages();
+                endpoints.MapControllers();
             });
         }
     }
