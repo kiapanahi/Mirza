@@ -40,7 +40,7 @@ namespace Mirza.Web
                     options.UseSqlServer(Configuration.GetConnectionString("MirzaDbContext")));
 
 
-            services.AddIdentity<MirzaUser, MirzaRole>(options =>
+            services.AddIdentityCore<MirzaUser>(options =>
                 {
                     options.SignIn.RequireConfirmedAccount = true;
                     options.SignIn.RequireConfirmedPhoneNumber = false;
