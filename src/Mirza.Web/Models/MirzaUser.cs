@@ -12,7 +12,7 @@ namespace Mirza.Web.Models
         public string LastName { get; set; }
         public bool IsActive { get; set; } = true;
 
-        public int TeamId { get; set; }
+        public int? TeamId { get; set; }
         public Team Team { get; set; }
 
         [SuppressMessage("Usage", "CA2227:Collection properties should be read only", Justification = "<Pending>")]
