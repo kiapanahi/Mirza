@@ -105,15 +105,6 @@
                         <span class="navbar-toggler-icon icon-bar"></span>
                     </button>
                     <div class="collapse navbar-collapse justify-content-end">
-                        <form class="navbar-form">
-                            <div class="input-group no-border">
-                                <input type="text" value="" class="form-control" placeholder="جستجو...">
-                                <button type="submit" class="btn btn-white btn-round btn-just-icon">
-                                    <i class="material-icons">search</i>
-                                    <div class="ripple-container"></div>
-                                </button>
-                            </div>
-                        </form>
                         <ul class="navbar-nav">
                             <li class="nav-item">
                                 <a class="nav-link" asp-area="Identity" asp-page="/Account/Manage/Index">
@@ -124,6 +115,13 @@
                                 </a>
                             </li>
                         </ul>
+                        <form class="navbar-form" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/Index", new { area = "" })">
+                            <div class="input-group no-border">
+                                <button type="submit" class="btn btn-just-icon">
+                                    <i class="material-icons">power_settings_new</i>
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </nav>
