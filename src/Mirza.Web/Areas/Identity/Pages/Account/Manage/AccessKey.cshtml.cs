@@ -1,9 +1,11 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using Mirza.Web.Dto;
 using Mirza.Web.Models;
 using Mirza.Web.Services.User;
 
@@ -28,7 +30,7 @@ namespace Mirza.Web.Areas.Identity.Pages.Account.Manage
         [BindProperty]
         public InputModel Input { get; set; }
 
-        public IEnumerable<AccessKey> AccessKeyList { get; set; }
+        public IEnumerable<AccessKeyListItem> AccessKeyList { get; set; }
 
         public class InputModel
         {
@@ -45,8 +47,29 @@ namespace Mirza.Web.Areas.Identity.Pages.Account.Manage
                 return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
             }
 
-            AccessKeyList = await _userService.GetAllAccessKeys(user.Id, false).ConfigureAwait(false);
+            var keys = await _userService.GetAllAccessKeys(user.Id, false).ConfigureAwait(false);
+            AccessKeyList = keys.Select(s => new AccessKeyListItem(s));
             return Page();
+        }
+
+        public async Task<IActionResult> OnPostDeactivateAccessKeyAsync(int accessKeyId)
+        {
+            var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+            if (user == null)
+            {
+                return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+            }
+
+            try
+            {
+                var deactivationResult = await _userService.DeactivateAccessKey(user.Id, accessKeyId).ConfigureAwait(false);
+            }
+            catch (AccessKeyException e)
+            {
+                ModelState.TryAddModelError("AccessKeyException", e.Message);
+            }
+
+            return RedirectToPage();
         }
     }
 }

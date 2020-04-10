@@ -16,12 +16,15 @@
             </div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table">
+                    <table class="table table-condesed table-hover">
                         <thead class="text-info">
                         <th>شناسه</th>
                         <th>کلید</th>
                         <th>انقضا</th>
                         <th>وضعیت</th>
+                        <th>
+                            <span class="justify-content-center">...</span>
+                        </th>
                         </thead>
                         <tbody>
                             @foreach (var accessKey in Model.AccessKeyList)
@@ -29,8 +32,19 @@
                                 <tr>
                                     <td>@accessKey.Id</td>
                                     <td>@accessKey.Key</td>
-                                    <td>@accessKey.Expiration</td>
+                                    <td>@accessKey.ExpirationPersian</td>
                                     <td>@accessKey.State</td>
+                                    <td>
+                                        @if (accessKey.IsActive)
+                                        {
+                                            <form asp-page-handler="DeactivateAccessKey" method="post">
+                                                <input type="hidden" asp-for="@accessKey.Id" name="accessKeyId" />
+                                                <button type="submit" class="btn btn-info btn-sm">
+                                                    <i class="material-icons">delete</i>
+                                                </button>
+                                            </form>
+                                        }
+                                    </td>
                                 </tr>
                             }
                         </tbody>
