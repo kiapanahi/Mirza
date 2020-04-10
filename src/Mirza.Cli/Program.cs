@@ -8,6 +8,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Mirza.Common;
 
 namespace Mirza.Cli
 {
@@ -22,7 +23,7 @@ namespace Mirza.Cli
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "Mirza");
 
-        private static readonly string[] ValidAcceptResponses = {string.Empty, "Y", "YES"};
+        private static readonly string[] ValidAcceptResponses = { string.Empty, "Y", "YES" };
 
         private static string ConfigFile => Path.Join(MirzaConfigDirectory, ".mirza");
 
@@ -228,7 +229,7 @@ namespace Mirza.Cli
         {
             var request = new HttpRequestMessage(HttpMethod.Get, $"/api/users/detail/{accessKey}")
             {
-                Headers = {Authorization = new AuthenticationHeaderValue("AccessKey", accessKey)}
+                Headers = { Authorization = new AuthenticationHeaderValue("AccessKey", accessKey) }
             };
 
             var result = await HttpClient.SendAsync(request);
@@ -292,7 +293,7 @@ namespace Mirza.Cli
             var requestMessage = new HttpRequestMessage(HttpMethod.Post, "api/users/worklog")
             {
                 Content = content,
-                Headers = {Authorization = new AuthenticationHeaderValue("AccessKey", accessKey)}
+                Headers = { Authorization = new AuthenticationHeaderValue("AccessKey", accessKey) }
             };
             var httpResponse = await HttpClient.SendAsync(requestMessage);
 

@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Text.Json.Serialization;
+using Mirza.Common;
 
 namespace Mirza.Cli
 {
     public class WorkLogReport
     {
-        private readonly PersianCalendar _pc = new PersianCalendar();
-
         /// <summary>
         ///     Report Date
         /// </summary>

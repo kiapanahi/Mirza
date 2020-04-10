@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Globalization;
 
-namespace Mirza.Cli
+namespace Mirza.Common
 {
     public static class Utils
     {
