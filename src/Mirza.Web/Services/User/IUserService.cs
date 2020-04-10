@@ -15,6 +15,8 @@ namespace Mirza.Web.Services.User
         Task<WorkLog> AddWorkLog(int userId, WorkLog workLog);
         Task<AccessKey> AddAccessKey(int userId);
         Task<AccessKey> DeactivateAccessKey(int userId, string accessKey);
+        Task<AccessKey> DeactivateAccessKey(int userId, int accessKeyId);
+
         Task<WorkLogReportOutput> GetWorkLogReport(int userId, DateTime logDate);
         Task<IEnumerable<AccessKey>> GetAllAccessKeys(int userId, bool activeOnly = false);
     }

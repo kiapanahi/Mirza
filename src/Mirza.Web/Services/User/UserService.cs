@@ -62,6 +62,21 @@ namespace Mirza.Web.Services.User
             }
         }
 
+        public async Task<AccessKey> DeactivateAccessKey(int userId, int accessKeyId)
+        {
+            var accessKey = await _dbContext.AccessKeySet
+                .Where(w => w.OwnerId == userId)
+                .SingleOrDefaultAsync(s => s.Id == accessKeyId)
+                .ConfigureAwait(false);
+
+            if (accessKey == null)
+            {
+                throw new AccessKeyException("Invalid access key Id");
+            }
+
+            return await DeactivateAccessKey(userId, accessKey.Key).ConfigureAwait(false);
+        }
+
         public async Task<AccessKey> DeactivateAccessKey(int userId, string accessKey)
         {
             var user = await _dbContext.UserSet.Include(u => u.AccessKeys)
