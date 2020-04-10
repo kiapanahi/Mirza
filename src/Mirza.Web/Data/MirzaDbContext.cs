@@ -18,6 +18,7 @@ namespace Mirza.Web.Data
         public DbSet<MirzaUser> UserSet { get; set; }
         public DbSet<Team> TeamSet { get; set; }
         public DbSet<WorkLog> WorkLogSet { get; set; }
+        public DbSet<AccessKey> AccessKeySet { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
