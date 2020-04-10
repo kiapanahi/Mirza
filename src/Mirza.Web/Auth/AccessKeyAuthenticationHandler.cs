@@ -56,7 +56,7 @@ namespace Mirza.Web.Auth
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString(CultureInfo.InvariantCulture)),
                 new Claim(ClaimTypes.Name, $"{user.FirstName} {user.LastName}"),
                 new Claim(ClaimTypes.Email, user.Email),
-                new Claim(MirzaClaimTypes.Team, user.Team.Id.ToString(CultureInfo.InvariantCulture)),
+                new Claim(MirzaClaimTypes.Team, user.Team?.Id.ToString(CultureInfo.InvariantCulture) ?? "0"),
 
                 // TODO: read tenant id form user object
                 new Claim(MirzaClaimTypes.Tenant, "1")
