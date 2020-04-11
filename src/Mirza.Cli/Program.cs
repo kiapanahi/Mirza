@@ -14,7 +14,7 @@ namespace Mirza.Cli
 {
     internal static class Program
     {
-        private static readonly HttpClient HttpClient = new HttpClient
+        private static readonly HttpClient HttpClient = new HttpClient(new HttpClientHandler() { AllowAutoRedirect = false })
         {
             BaseAddress = new Uri(@"https://localhost:5001/")
         };
@@ -94,6 +94,17 @@ namespace Mirza.Cli
                 }
 
                 Console.WriteLine($"{border} Total => {report.TotalDuration} {border}");
+            }
+            else if (httpResponse.StatusCode == System.Net.HttpStatusCode.Found)
+            {
+                if (httpResponse.Headers.Location.AbsolutePath.Equals("/Identity/Account/Login", StringComparison.OrdinalIgnoreCase))
+                {
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.WriteLine("oops!");
+                    Console.WriteLine("it looks like your accesskey is not valid.");
+
+                    Console.ResetColor();
+                }
             }
             else
             {
