@@ -15,6 +15,12 @@
                 <p class="card-category">می‌تونید از این کلید‌ها تو برنامه‌ی خط-فرمانی میرزا استفاده کنید</p>
             </div>
             <div class="card-body">
+                <div>
+                    <!-- Button trigger modal -->
+                    <button type="button" class="btn btn-info" id="showNewKeyModal">
+                        ساخت کلید جدید
+                    </button>
+                </div>
                 <div class="table-responsive">
                     <table class="table table-condesed table-hover">
                         <thead class="text-info">
@@ -31,7 +37,7 @@
                             {
                                 <tr>
                                     <td>@accessKey.Id</td>
-                                    <td>@accessKey.Key</td>
+                                    <td style="direction:ltr">@accessKey.Key</td>
                                     <td>@accessKey.ExpirationPersian</td>
                                     <td>@accessKey.State</td>
                                     <td>
@@ -53,8 +59,48 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="generateKeyModal" tabindex="-1" role="dialog" aria-labelledby="generateKeyModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="generateKeyModalLabel">ساخت کلید جدید</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>کلید زیر رو یک جای امن کپی کنید. این تنها باریه که این کلید رو می‌بینید.</p>
+                    <input class="form-control" type="text" id="newKeyInput" readonly>
+                </div>
+                <div class="modal-footer">
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        var modalHandle = $("#generateKeyModal").modal({
+            backdrop: 'static',
+            keyboard: true,
+            focus: true,
+            show: false
+        });
+
+        modalHandle.on('hidden.bs.modal', function (e) {
+            location.reload();
+        })
+
+        $("#showNewKeyModal").click(function () {
+            $.post("/api/users/access-key/generate", function (data) {
+                $("#newKeyInput").val(data['key']);
+                modalHandle.modal('show');
+            })
+        });
+
+    </script>
 }
