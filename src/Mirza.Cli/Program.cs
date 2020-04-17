@@ -16,7 +16,7 @@ namespace Mirza.Cli
     {
         private static readonly HttpClient HttpClient = new HttpClient(new HttpClientHandler() { AllowAutoRedirect = false })
         {
-            BaseAddress = new Uri(@"https://localhost:5001/")
+            BaseAddress = new Uri(@"http://app.mirzza.ir")
         };
 
         private static readonly string MirzaConfigDirectory = Path.Join(
