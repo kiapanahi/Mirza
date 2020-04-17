@@ -1,0 +1,57 @@
+﻿@page
+@model Mirza.Web.Pages.ReportModel
+@{
+    ViewData["Title"] = "گزارش کارکرد";
+}
+
+<div class="row">
+    <div class="col">
+        <div class="card">
+            <div class="card-header card-header-info">
+                <h4 class="card-title ">گزارش کارهای انجام شده</h4>
+                <p class="card-category"></p>
+            </div>
+            <div class="card-body">
+                <table id="reportTable" class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>تاریخ</th>
+                            <th>کاربر</th>
+                            <th>شروع</th>
+                            <th>پایان</th>
+                            <th>توضیحات</th>
+                            <th>جزئیات</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var workLog in Model.Report)
+                        {
+                            @foreach (var logEntry in workLog.WorkLogItems)
+                            {
+                                <tr>
+                                    <td>@Mirza.Common.Utils.GetPersianDate(logEntry.WorkLogDate)</td>
+                                    <td>@workLog.User</td>
+                                    <td>@logEntry.StartTime</td>
+                                    <td>@logEntry.EndTime</td>
+                                    <td>@logEntry.Description</td>
+                                    <td>@logEntry.Details</td>
+                                    <td></td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script>
+        $("#reportTable").DataTable({
+            dom: 'Bfrtip',
+            buttons: ['copy', 'csv', 'excel', 'pdf']
+        });
+    </script>
+}
