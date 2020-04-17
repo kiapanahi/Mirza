@@ -9,6 +9,8 @@ namespace Mirza.Web.Dto
     {
         public DateTime WorkLogDate { get; set; }
 
+        public string User { get; set; }
+
         public IEnumerable<WorkLogReportItem> WorkLogItems { get; set; } = new List<WorkLogReportItem>();
 
         public TimeSpan TotalDuration
