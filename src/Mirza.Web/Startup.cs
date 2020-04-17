@@ -8,6 +8,7 @@ using Microsoft.Extensions.Hosting;
 using Mirza.Web.Auth;
 using Mirza.Web.Data;
 using Mirza.Web.Models;
+using Mirza.Web.Services.Report;
 using Mirza.Web.Services.User;
 
 namespace Mirza.Web
@@ -36,6 +37,7 @@ namespace Mirza.Web
                 .AddIdentityCookies(o => { });
 
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IReportService, ReportService>();
 
             services.AddDbContext<MirzaDbContext>(options =>
                     options.UseSqlServer(Configuration.GetConnectionString("MirzaDbContext")));
