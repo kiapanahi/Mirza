@@ -1,8 +1,104 @@
 ﻿@page
 @model Mirza.Web.Pages.IndexModel
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "خانه";
 }
 
-<h1>Index</h1>
+@if (!String.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="alert alert-danger alert-dismissible" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        @Model.ErrorMessage
+    </div>
+}
 
+<div class="row">
+    <div class="col">
+        <div class="card">
+            <div class="card-header card-header-info">
+                <h4 class="card-title ">ثبت رکورد جدید</h4>
+                <p class="card-category"></p>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    <div asp-validation-summary="All" class="text-danger"></div>
+                    <div class="form-row">
+                        <div class="form-group col-md-4">
+                            <label asp-for="Input.Date">تاریخ</label>
+                            <input class="form-control" asp-for="Input.Date">
+                            <span asp-validation-for="Input.Date" class="text-danger"></span>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label asp-for="Input.Start">شروع از</label>
+                            <input class="form-control" asp-for="Input.Start">
+                            <span asp-validation-for="Input.Start" class="text-danger"></span>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label asp-for="Input.End">تا</label>
+                            <input class="form-control" asp-for="Input.End">
+                            <span asp-validation-for="Input.End" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Input.Description">توضیحات</label>
+                        <textarea class="form-control" asp-for="Input.Description"></textarea>
+                        <span asp-validation-for="Input.Description" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Input.Details">جزئیات</label>
+                        <textarea class="form-control" asp-for="Input.Details"></textarea>
+                        <span asp-validation-for="Input.Details" class="text-danger"></span>
+                    </div>
+                    <button type="submit" class="btn btn-info">میــرزا! بنویس!</button>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col">
+        <div class="card">
+            <div class="card-header card-header-info">
+                <h4 class="card-title ">گزارش کارهای انجام شده</h4>
+                <p class="card-category"></p>
+            </div>
+            <div class="card-body">
+                <table id="reportTable" class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>تاریخ</th>
+                            <th>شروع</th>
+                            <th>پایان</th>
+                            <th>توضیحات</th>
+                            <th>جزئیات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var logEntry in Model.TodayWorkLog.WorkLogItems)
+                        {
+                            <tr>
+                                <td>@Mirza.Common.Utils.GetPersianDate(logEntry.WorkLogDate)</td>
+                                <td>@logEntry.StartTime</td>
+                                <td>@logEntry.EndTime</td>
+                                <td>@logEntry.Description</td>
+                                <td>@logEntry.Details</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $("#reportTable").DataTable({
+            dom: 'Bfrtip',
+            buttons: ['copy', 'csv', 'excel', 'pdf']
+        });
+    </script>
+}
