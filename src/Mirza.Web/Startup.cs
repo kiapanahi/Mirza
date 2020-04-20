@@ -10,6 +10,7 @@ using Mirza.Web.Data;
 using Mirza.Web.Models;
 using Mirza.Web.Services.Report;
 using Mirza.Web.Services.User;
+using reCAPTCHA.AspNetCore;
 
 namespace Mirza.Web
 {
@@ -58,6 +59,9 @@ namespace Mirza.Web
                 .AddDefaultUI()
                 .AddDefaultTokenProviders()
                 .AddEntityFrameworkStores<MirzaDbContext>();
+
+            services.Configure<RecaptchaSettings>(Configuration.GetSection("RecaptchaSettings"));
+            services.AddTransient<IRecaptchaService, RecaptchaService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
