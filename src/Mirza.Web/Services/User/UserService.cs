@@ -224,6 +224,45 @@ namespace Mirza.Web.Services.User
             }
         }
 
+        public async Task<WorkLog> DeleteWorkLog(int userId, int workLogId)
+        {
+            var user = await _dbContext.UserSet
+                                       .Include(u => u.WorkLog)
+                                       .SingleOrDefaultAsync(s => s.IsActive && s.Id == userId)
+                                       .ConfigureAwait(false);
+
+            if (user == null)
+            {
+                throw new ArgumentException("Invalid userId", nameof(userId));
+            }
+
+            var workLogToRemove = user.WorkLog.SingleOrDefault(w => w.Id == workLogId);
+            if (workLogToRemove == null)
+            {
+                throw new ArgumentException($"Work log not found. Id: {workLogId}", nameof(workLogId));
+            }
+            if (user.WorkLog.Remove(workLogToRemove))
+            {
+                try
+                {
+                    _ = await _dbContext.SaveChangesAsync().ConfigureAwait(false);
+                    return workLogToRemove;
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError("Exception occured while deleting worklog", e);
+                    throw;
+                }
+
+            }
+            else
+            {
+                throw new InvalidOperationException($"Error occured while trying to remove worklog {workLogId} " +
+                    $"from user: {userId} work log collection");
+            }
+
+        }
+
         public async Task<WorkLogReportOutput> GetWorkLogReport(int userId, DateTime logDate)
         {
             try

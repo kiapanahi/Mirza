@@ -19,5 +19,6 @@ namespace Mirza.Web.Services.User
 
         Task<WorkLogReportOutput> GetWorkLogReport(int userId, DateTime logDate);
         Task<IEnumerable<AccessKey>> GetAllAccessKeys(int userId, bool activeOnly = false);
+        Task<WorkLog> DeleteWorkLog(int userId, int workLogId);
     }
 }
