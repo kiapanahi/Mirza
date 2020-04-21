@@ -28,9 +28,9 @@ namespace Mirza.Web.Dto
                 Id = workLog.Id,
                 Description = workLog.Description,
                 Details = workLog.Details,
-                EndTime = workLog.EndTime.ToString("hh\\:mm\\:ss", CultureInfo.CurrentCulture),
+                EndTime = workLog.EndTime.ToString("hh\\:mm", CultureInfo.CurrentCulture),
                 WorkLogDate = workLog.EntryDate,
-                StartTime = workLog.StartTime.ToString("hh\\:mm\\:ss", CultureInfo.CurrentCulture)
+                StartTime = workLog.StartTime.ToString("hh\\:mm", CultureInfo.CurrentCulture)
             };
         }
     }

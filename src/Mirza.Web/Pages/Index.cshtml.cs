@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -39,12 +40,12 @@ namespace Mirza.Web.Pages
             [Display(Name = "ساعت شروع")]
             [DataType(DataType.Time)]
             [Required(AllowEmptyStrings = false, ErrorMessage = "کاری که ساعت شروع نداشته باشه که نمی‌شه. نه؟")]
-            public TimeSpan Start { get; set; }
+            public string Start { get; set; }
 
             [Display(Name = "ساعت پایان")]
             [DataType(DataType.Time)]
             [Required(AllowEmptyStrings = false, ErrorMessage = "کاری که تموم نشده رو چطوری ثبت می‌کنی؟")]
-            public TimeSpan End { get; set; }
+            public string End { get; set; }
 
             [Display(Name = "توضیح")]
             [DataType(DataType.MultilineText)]
@@ -66,9 +67,26 @@ namespace Mirza.Web.Pages
                 return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
             }
 
+            Input = new InputModel();
+
             TodayWorkLog = await _userService.GetWorkLogReport(user.Id, DateTime.Now.Date).ConfigureAwait(false);
 
-            Input = new InputModel();
+            string latestWorkItemEndTime;
+
+            if (TodayWorkLog == null || !TodayWorkLog.WorkLogItems.Any())
+            {
+                var now = DateTime.Now;
+                var minutes = now.Minute;
+                minutes -= (minutes % 5);
+
+                latestWorkItemEndTime = $"{now:HH}:{minutes:D2}";
+            }
+            else
+            {
+                latestWorkItemEndTime = TodayWorkLog.WorkLogItems.OrderByDescending(w => w.EndTime).First().EndTime;
+            }
+
+            Input.Start = latestWorkItemEndTime;
 
             return Page();
         }
@@ -90,8 +108,8 @@ namespace Mirza.Web.Pages
                     Description = Input.Description ?? "-",
                     Details = Input.Details ?? "-",
                     EntryDate = Input.Date,
-                    StartTime = Input.Start,
-                    EndTime = Input.End
+                    StartTime = TimeSpan.Parse(Input.Start),
+                    EndTime = TimeSpan.Parse(Input.End)
                 }).ConfigureAwait(false);
             }
             catch (ArgumentNullException)

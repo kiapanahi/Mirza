@@ -6,8 +6,8 @@ namespace Mirza.Cli
     {
         public AddWorkLogServiceInput(TimeSpan start, TimeSpan end, string description = "-", string detail = "-")
         {
-            Start = start.ToString("hh\\:mm\\:ss");
-            End = end.ToString("hh\\:mm\\:ss");
+            Start = start.ToString("hh\\:mm");
+            End = end.ToString("hh\\:mm");
             Description = description;
             Detail = detail;
         }
