@@ -16,12 +16,12 @@ namespace Mirza.Web.Services.Report
             _dbContext = dbContext;
         }
 
-        public IEnumerable<WorkLogReportOutput> GetReport()
+        public async Task<IEnumerable<WorkLogReportOutput>> GetReportAsync()
         {
-            var workLogItems = _dbContext.WorkLogSet.Include(w => w.User)
+            var workLogItems = await _dbContext.WorkLogSet.Include(w => w.User)
                 .OrderByDescending(w => w.LogDate)
                 .ThenByDescending(w => w.UserId)
-                .ToList();
+                .ToListAsync().ConfigureAwait(false);
 
             var result = workLogItems.GroupBy(g => new { Email = g.User.Email, WorkLogDate = g.EntryDate.Date })
                 .Select(g => new WorkLogReportOutput

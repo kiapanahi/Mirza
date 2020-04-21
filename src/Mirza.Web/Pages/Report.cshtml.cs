@@ -18,9 +18,9 @@ namespace Mirza.Web.Pages
 
         public IEnumerable<WorkLogReportOutput> Report { get; set; }
 
-        public IActionResult OnGetAsync()
+        public async Task<IActionResult> OnGetAsync()
         {
-            Report = _reportService.GetReport();
+            Report = await _reportService.GetReportAsync().ConfigureAwait(false);
 
             return Page();
         }
