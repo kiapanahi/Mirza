@@ -16,7 +16,12 @@ namespace Mirza.Cli
     {
         private static readonly HttpClient HttpClient = new HttpClient(new HttpClientHandler() { AllowAutoRedirect = false })
         {
+#if DEBUG
+            BaseAddress = new Uri(@"https://localhost:5001")
+#endif
+#if RELEASE
             BaseAddress = new Uri(@"http://app.mirzza.ir")
+#endif
         };
 
         private static readonly string MirzaConfigDirectory = Path.Join(
@@ -39,6 +44,7 @@ namespace Mirza.Cli
             AddBedroodCommand(mirzaCommand);
             AddBenevisCommand(mirzaCommand);
             AddCheKhabarCommand(mirzaCommand);
+            AddKhatbezanCommand(mirzaCommand);
 
             await mirzaCommand.InvokeAsync(args);
         }
@@ -57,6 +63,70 @@ namespace Mirza.Cli
             logCommand.Handler = CommandHandler.Create<DateTime>(HandleWorkLogReportCommand);
 
             rootCmd.AddCommand(logCommand);
+        }
+
+        private static void AddKhatbezanCommand(Command rootCmd)
+        {
+            var logCommand = new Command("khatbezan", "Delete a worklog");
+
+            var workLogArg = new Argument<int>("WorkLogId")
+            {
+                Description = "Work log id to delete",
+                Arity = ArgumentArity.ExactlyOne
+            };
+            logCommand.AddArgument(workLogArg);
+
+            logCommand.Handler = CommandHandler.Create<int>(HandleWorkLogDeleteCommand);
+
+            rootCmd.AddCommand(logCommand);
+        }
+
+        private static async Task HandleWorkLogDeleteCommand(int workLogId)
+        {
+            if (!IsAuthenticated())
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.Error.WriteLine("You first have to say hello to Mirza in order for him to know who you are...");
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("Try running 'mirza dorood <access-key>'");
+                Console.ResetColor();
+                return;
+            }
+
+            SetHttpClientAccessKeyHeader();
+
+            var httpResponse = await HttpClient.DeleteAsync($"api/users/worklog/{workLogId}");
+            var responseContent = await httpResponse.Content.ReadAsStringAsync();
+            if (httpResponse.IsSuccessStatusCode)
+            {
+                var response = JsonSerializer.Deserialize<DeleteWorkLogServiceSuccessResponse>(responseContent, new JsonSerializerOptions
+                {
+                    IgnoreNullValues = false,
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                    PropertyNameCaseInsensitive = true
+                });
+                Console.WriteLine($"Done, work log {response.Id} deleted sucessfully");
+            }
+            else
+            {
+                var errorResponse =
+                    JsonSerializer.Deserialize<DeleteWorkLogServiceErrorResponse>(responseContent,
+                        new JsonSerializerOptions
+                        {
+                            IgnoreNullValues = false,
+                            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                            PropertyNameCaseInsensitive = false
+                        });
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine("oops!");
+                Console.WriteLine(errorResponse.ErrorMessage);
+                if (errorResponse.ErrorDetails != null)
+                {
+                    Console.WriteLine(errorResponse.ErrorDetails);
+                }
+
+                Console.ResetColor();
+            }
         }
 
         private static async Task HandleWorkLogReportCommand(DateTime date)
