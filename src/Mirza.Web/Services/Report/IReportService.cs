@@ -6,6 +6,6 @@ namespace Mirza.Web.Services.Report
 {
     public interface IReportService
     {
-        IEnumerable<WorkLogReportOutput> GetReport();
+        Task<IEnumerable<WorkLogReportOutput>> GetReportAsync();
     }
 }
