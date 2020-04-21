@@ -314,5 +314,40 @@ namespace Mirza.Web.Controllers
                 });
             }
         }
+
+        [HttpDelete("worklog/{id}")]
+        public async Task<ActionResult<WorkLog>> DeleteWorkLog(int id)
+        {
+            var userIdClaimValue = User.Claims
+                                       .FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value ?? "-1";
+
+            if (!int.TryParse(userIdClaimValue, out var userId))
+            {
+                return BadRequest(new { ErrorMessage = "Could not acquire user id from request" });
+            }
+
+            try
+            {
+                var log = await _userService.DeleteWorkLog(userId, id)
+                                            .ConfigureAwait(false);
+                return Ok(new { log.Id });
+            }
+            catch (ArgumentException e) when (e.Message.Contains("Invalid userId", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return BadRequest(new { ErrorMessage = "Invalid user id" });
+            }
+            catch (ArgumentException e) when (e.Message.Contains("Work log not found", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return BadRequest(new { ErrorMessage = $"Worklog Id {id} not found for user {userId}" });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    ErrorMessage = "Error while deleting work log",
+                    ErrorDetail = $"Internal Error. LogId: {HttpContext.TraceIdentifier}"
+                });
+            }
+        }
     }
 }
