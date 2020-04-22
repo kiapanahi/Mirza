@@ -101,6 +101,9 @@ namespace Mirza.Web.Pages
 
             try
             {
+                _ = TimeSpan.TryParse(Input.Start, out var startTime);
+                _ = TimeSpan.TryParse(Input.End, out var endTime);
+
                 _ = await _userService.AddWorkLog(user.Id, new WorkLog
                 {
                     User = user,
@@ -108,8 +111,8 @@ namespace Mirza.Web.Pages
                     Description = Input.Description ?? "-",
                     Details = Input.Details ?? "-",
                     EntryDate = Input.Date,
-                    StartTime = TimeSpan.Parse(Input.Start),
-                    EndTime = TimeSpan.Parse(Input.End)
+                    StartTime = startTime,
+                    EndTime = endTime
                 }).ConfigureAwait(false);
             }
             catch (ArgumentNullException)
