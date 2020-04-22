@@ -19,6 +19,6 @@ namespace Mirza.Web.Dto
                                                TimeSpan.Parse(item.StartTime, CultureInfo.CurrentCulture)));
 
         public string TotalDurationString
-            => TotalDuration.ToString("hh\\:mm\\:ss", CultureInfo.CurrentCulture);
+            => TotalDuration.ToString("hh\\:mm", CultureInfo.CurrentCulture);
     }
 }

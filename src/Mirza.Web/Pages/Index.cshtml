@@ -30,12 +30,12 @@
                         </div>
                         <div class="form-group col-md-4">
                             <label asp-for="Input.Start">شروع از</label>
-                            <input class="form-control" asp-for="Input.Start">
+                            <input id="input-start" class="form-control" asp-for="Input.Start" value="@Model.Input.Start">
                             <span asp-validation-for="Input.Start" class="text-danger"></span>
                         </div>
                         <div class="form-group col-md-4">
                             <label asp-for="Input.End">تا</label>
-                            <input class="form-control" asp-for="Input.End">
+                            <input id="input-end" class="form-control" asp-for="Input.End">
                             <span asp-validation-for="Input.End" class="text-danger"></span>
                         </div>
                     </div>
@@ -113,5 +113,26 @@
             dom: 'Bfrtip',
             buttons: ['copy', 'csv', 'excel', 'pdf']
         });
+
+        tail.DateTime("#input-start", {
+            time12h: false,
+            dateFormat: false,
+            zeroSeconds: true,
+            closeButton: false,
+            timeFormat: "HH:ii",
+            timeStepHours: 1,
+            timeStepMinutes: 5,
+        });
+
+        tail.DateTime("#input-end", {
+            time12h: false,
+            dateFormat: false,
+            zeroSeconds: true,
+            closeButton: false,
+            timeFormat: "HH:ii",
+            timeStepHours: 1,
+            timeStepMinutes: 5,
+        });
+
     </script>
 }
