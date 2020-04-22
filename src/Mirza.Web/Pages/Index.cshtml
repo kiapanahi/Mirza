@@ -30,12 +30,12 @@
                         </div>
                         <div class="form-group col-md-4">
                             <label asp-for="Input.Start">شروع از</label>
-                            <input id="input-start" class="form-control" name="Input.Start" type="text" value="@Model.Input.Start">
+                            <input id="input-start" class="form-control" asp-for="Input.Start" value="@Model.Input.Start">
                             <span asp-validation-for="Input.Start" class="text-danger"></span>
                         </div>
                         <div class="form-group col-md-4">
                             <label asp-for="Input.End">تا</label>
-                            <input id="input-end" class="form-control" name="Input.End" type="text">
+                            <input id="input-end" class="form-control" asp-for="Input.End">
                             <span asp-validation-for="Input.End" class="text-danger"></span>
                         </div>
                     </div>
