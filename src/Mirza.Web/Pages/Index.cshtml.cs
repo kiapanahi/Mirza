@@ -135,5 +135,31 @@ namespace Mirza.Web.Pages
 
             return RedirectToPage();
         }
+
+        public async Task<IActionResult> OnPostDeleteWorkLogAsync(int workLogId)
+        {
+            var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+            if (user == null)
+            {
+                return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+            }
+            try
+            {
+                var deletedWorkLog = await _userService.DeleteWorkLog(user.Id, workLogId).ConfigureAwait(false);
+            }
+            catch (ArgumentException e) when (e.Message.Contains("Invalid userId", StringComparison.InvariantCultureIgnoreCase))
+            {
+                ErrorMessage = "بله؟ شما؟";
+            }
+            catch (ArgumentException e) when (e.Message.Contains("Work log not found", StringComparison.InvariantCultureIgnoreCase))
+            {
+                ErrorMessage = "کاری رو که می‌خوای پاک کنم پیدا نکردم :)";
+            }
+            catch (Exception)
+            {
+                ErrorMessage = "یه اتفاقی افتاده عجیب! نمی‌دونم چی‌کار کنم!";
+            }
+            return RedirectToPage();
+        }
     }
 }

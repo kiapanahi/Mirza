@@ -73,6 +73,7 @@
                             <th>پایان</th>
                             <th>توضیحات</th>
                             <th>جزئیات</th>
+                            <th>...</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -84,6 +85,18 @@
                                 <td>@logEntry.EndTime</td>
                                 <td>@logEntry.Description</td>
                                 <td>@logEntry.Details</td>
+                                <td>
+                                    <form method="post">
+                                        <input type="hidden" name="workLogId" value="@logEntry.Id" />
+                                        <button type="submit" class="btn btn-outline btn-outline-danger"
+                                                asp-page-handler="DeleteWorkLog"
+                                                name="DeleteWorkLog">
+                                            <span class="material-icons">
+                                                delete
+                                            </span>
+                                        </button>
+                                    </form>
+                                </td>
                             </tr>
                         }
                     </tbody>
