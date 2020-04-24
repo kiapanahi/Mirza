@@ -3,32 +3,35 @@ using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Mirza.Cli.Models;
 using Mirza.Common;
 
 namespace Mirza.Cli
 {
     internal static class Program
     {
-        private static readonly HttpClient HttpClient = new HttpClient(new HttpClientHandler() { AllowAutoRedirect = false })
-        {
+        private static readonly HttpClient HttpClient =
+            new HttpClient(new HttpClientHandler {AllowAutoRedirect = false})
+            {
 #if DEBUG
-            BaseAddress = new Uri(@"https://localhost:5001")
+                BaseAddress = new Uri(@"https://localhost:5001")
 #endif
 #if RELEASE
             BaseAddress = new Uri(@"http://app.mirzza.ir")
 #endif
-        };
+            };
 
         private static readonly string MirzaConfigDirectory = Path.Join(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "Mirza");
 
-        private static readonly string[] ValidAcceptResponses = { string.Empty, "Y", "YES" };
+        private static readonly string[] ValidAcceptResponses = {string.Empty, "Y", "YES"};
 
         private static string ConfigFile => Path.Join(MirzaConfigDirectory, ".mirza");
 
@@ -67,7 +70,7 @@ namespace Mirza.Cli
 
         private static void AddKhatbezanCommand(Command rootCmd)
         {
-            var logCommand = new Command("khatbezan", "Delete a worklog");
+            var logCommand = new Command("khatbezan", "Delete a work log");
 
             var workLogArg = new Argument<int>("WorkLogId")
             {
@@ -86,7 +89,7 @@ namespace Mirza.Cli
             if (!IsAuthenticated())
             {
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.Error.WriteLine("You first have to say hello to Mirza in order for him to know who you are...");
+                await Console.Error.WriteLineAsync("You first have to say hello to Mirza in order for him to know who you are...");
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine("Try running 'mirza dorood <access-key>'");
                 Console.ResetColor();
@@ -95,17 +98,18 @@ namespace Mirza.Cli
 
             SetHttpClientAccessKeyHeader();
 
-            var httpResponse = await HttpClient.DeleteAsync($"api/users/worklog/{workLogId}");
+            var httpResponse = await HttpClient.DeleteAsync($"api/users/workLog/{workLogId}");
             var responseContent = await httpResponse.Content.ReadAsStringAsync();
             if (httpResponse.IsSuccessStatusCode)
             {
-                var response = JsonSerializer.Deserialize<DeleteWorkLogServiceSuccessResponse>(responseContent, new JsonSerializerOptions
-                {
-                    IgnoreNullValues = false,
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                    PropertyNameCaseInsensitive = true
-                });
-                Console.WriteLine($"Done, work log {response.Id} deleted sucessfully");
+                var response = JsonSerializer.Deserialize<DeleteWorkLogServiceSuccessResponse>(responseContent,
+                    new JsonSerializerOptions
+                    {
+                        IgnoreNullValues = false,
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                        PropertyNameCaseInsensitive = true
+                    });
+                Console.WriteLine($"Done, work log {response.Id} deleted successfully");
             }
             else
             {
@@ -135,7 +139,7 @@ namespace Mirza.Cli
             if (!IsAuthenticated())
             {
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.Error.WriteLine("You first have to say hello to Mirza in order for him to know who you are...");
+                await Console.Error.WriteLineAsync("You first have to say hello to Mirza in order for him to know who you are...");
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine("Try running 'mirza dorood <access-key>'");
                 Console.ResetColor();
@@ -144,7 +148,7 @@ namespace Mirza.Cli
 
             SetHttpClientAccessKeyHeader();
 
-            var httpResponse = await HttpClient.GetAsync($"api/users/worklog?date={dateStr}");
+            var httpResponse = await HttpClient.GetAsync($"api/users/workLog?date={dateStr}");
             var responseContent = await httpResponse.Content.ReadAsStringAsync();
             if (httpResponse.IsSuccessStatusCode)
             {
@@ -165,13 +169,14 @@ namespace Mirza.Cli
 
                 Console.WriteLine($"{border} Total => {report.TotalDuration} {border}");
             }
-            else if (httpResponse.StatusCode == System.Net.HttpStatusCode.Found)
+            else if (httpResponse.StatusCode == HttpStatusCode.Found)
             {
-                if (httpResponse.Headers.Location.AbsolutePath.Equals("/Identity/Account/Login", StringComparison.OrdinalIgnoreCase))
+                if (httpResponse.Headers.Location.AbsolutePath.Equals("/Identity/Account/Login",
+                    StringComparison.OrdinalIgnoreCase))
                 {
                     Console.ForegroundColor = ConsoleColor.Yellow;
                     Console.WriteLine("oops!");
-                    Console.WriteLine("it looks like your accesskey is not valid.");
+                    Console.WriteLine("it looks like your access key is not valid.");
 
                     Console.ResetColor();
                 }
@@ -310,14 +315,14 @@ namespace Mirza.Cli
         {
             var request = new HttpRequestMessage(HttpMethod.Get, $"/api/users/detail/{accessKey}")
             {
-                Headers = { Authorization = new AuthenticationHeaderValue("AccessKey", accessKey) }
+                Headers = {Authorization = new AuthenticationHeaderValue("AccessKey", accessKey)}
             };
 
             var result = await HttpClient.SendAsync(request);
             if (!result.IsSuccessStatusCode)
             {
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.Error.WriteLine("Error validating access-key");
+                await Console.Error.WriteLineAsync("Error validating access-key");
                 Console.ResetColor();
                 return;
             }
@@ -329,8 +334,8 @@ namespace Mirza.Cli
             EnsureMirzaConfigFile();
             await using (var s = new StreamWriter(ConfigFile, true, Encoding.UTF8))
             {
-                s.WriteLine(accessKey);
-                s.Write(content);
+                await s.WriteLineAsync(accessKey);
+                await s.WriteAsync(content);
             }
 
             Console.WriteLine($"access key set to {accessKey}");
@@ -341,14 +346,14 @@ namespace Mirza.Cli
             if (!IsAuthenticated())
             {
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.Error.WriteLine("You first have to say hello to Mirza in order for him to know who you are...");
+                await Console.Error.WriteLineAsync("You first have to say hello to Mirza in order for him to know who you are...");
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine("Try running 'mirza dorood <access-key>'");
                 Console.ResetColor();
                 return;
             }
 
-            var accessKey = File.ReadAllLines(ConfigFile).First();
+            var accessKey = (await File.ReadAllLinesAsync(ConfigFile)).First();
 
             var user = GetUserFromConfigFile();
 
@@ -371,10 +376,10 @@ namespace Mirza.Cli
             var requestObject = new AddWorkLogServiceInput(from, to, desc, details);
             var serialized = JsonSerializer.Serialize(requestObject);
             var content = new StringContent(serialized, Encoding.UTF8, "application/json");
-            var requestMessage = new HttpRequestMessage(HttpMethod.Post, "api/users/worklog")
+            var requestMessage = new HttpRequestMessage(HttpMethod.Post, "api/users/workLog")
             {
                 Content = content,
-                Headers = { Authorization = new AuthenticationHeaderValue("AccessKey", accessKey) }
+                Headers = {Authorization = new AuthenticationHeaderValue("AccessKey", accessKey)}
             };
             var httpResponse = await HttpClient.SendAsync(requestMessage);
 
