@@ -1,5 +1,5 @@
-﻿@{
-    @inject SignInManager<MirzaUser> SignInManager;
+﻿@inject SignInManager<MirzaUser> SignInManager;
+@{
     Layout = "/Pages/Shared/_Layout.cshtml";
     ViewData["Title"] = $"مدیریت پروفایل - {ViewData["Subtitle"]}";
     var hasExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).Any();
@@ -19,15 +19,21 @@
                         <ul class="navbar-nav">
                             <li class="nav-item">
                                 <a class="nav-link @ManageNavPages.IndexNavClass(ViewContext)"
-                                   id="profile" asp-page="./Index">پروفایل</a>
+                                   id="profile" asp-page="./Index">
+                                    پروفایل
+                                </a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link @ManageNavPages.ChangePasswordNavClass(ViewContext)"
-                                   id="change-password" asp-page="./ChangePassword">کلمه عبور</a>
+                                   id="change-password" asp-page="./ChangePassword">
+                                    کلمه عبور
+                                </a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link @ManageNavPages.AccessKeyNavClass(ViewContext)"
-                                   id="access-key" asp-page="./AccessKey">کلید‌های دسترسی</a>
+                                   id="access-key" asp-page="./AccessKey">
+                                    کلید‌های دسترسی
+                                </a>
                             </li>
                         </ul>
                     </div>
@@ -43,5 +49,5 @@
 </div>
 
 @section Scripts {
-    @RenderSection("Scripts", required: false)
+    @RenderSection("Scripts", false)
 }
