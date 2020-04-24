@@ -11,6 +11,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Mirza.Cli.Models;
 using Mirza.Common;
+// ReSharper disable UnusedMember.Local
 
 namespace Mirza.Cli
 {
