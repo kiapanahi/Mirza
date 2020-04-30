@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Mirza.Web.Models
 {
@@ -13,6 +14,6 @@ namespace Mirza.Web.Models
         public string Description { get; set; }
         public string Details { get; set; }
         public DateTime LogDate { get; set; } = DateTime.Now;
-
+        public ICollection<Tag> Tags { get; set; } = new List<Tag>();
     }
 }
