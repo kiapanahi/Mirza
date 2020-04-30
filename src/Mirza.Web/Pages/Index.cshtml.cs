@@ -23,8 +23,10 @@ namespace Mirza.Web.Pages
             _userService = userService;
             _userManager = userManager;
         }
+
         [BindProperty]
         public InputModel Input { get; set; }
+
         public WorkLogReportOutput TodayWorkLog { get; set; }
 
         [TempData]
@@ -34,7 +36,8 @@ namespace Mirza.Web.Pages
         {
             [Display(Name = "تاریخ")]
             [DataType(DataType.Date)]
-            [Required(AllowEmptyStrings = false, ErrorMessage = "کاری که تاریخ نداره رو من تو کدوم صفحه‌ی تقویم بنویسم؟")]
+            [Required(AllowEmptyStrings = false,
+                ErrorMessage = "کاری که تاریخ نداره رو من تو کدوم صفحه‌ی تقویم بنویسم؟")]
             public DateTime Date { get; set; } = DateTime.Now;
 
             [Display(Name = "ساعت شروع")]
@@ -57,6 +60,7 @@ namespace Mirza.Web.Pages
             [StringLength(500, ErrorMessage = "چه خبرته؟ جزئیات رو به ۵۰۰ کاراکتر محدود کن!")]
             public string Details { get; set; }
 
+            public string Tags { get; set; }
         }
 
         public async Task<IActionResult> OnGetAsync()
@@ -104,6 +108,12 @@ namespace Mirza.Web.Pages
                 _ = TimeSpan.TryParse(Input.Start, out var startTime);
                 _ = TimeSpan.TryParse(Input.End, out var endTime);
 
+                var tags = Input.Tags.Split(',')
+                                .Select(t => t.Trim())
+                                .Where(t => !string.IsNullOrEmpty(t))
+                                .Select(t => new Tag(t))
+                                .ToList();
+
                 _ = await _userService.AddWorkLog(user.Id, new WorkLog
                 {
                     User = user,
@@ -112,7 +122,8 @@ namespace Mirza.Web.Pages
                     Details = Input.Details ?? "-",
                     EntryDate = Input.Date,
                     StartTime = startTime,
-                    EndTime = endTime
+                    EndTime = endTime,
+                    Tags = tags
                 }).ConfigureAwait(false);
             }
             catch (ArgumentNullException)
@@ -146,15 +157,18 @@ namespace Mirza.Web.Pages
             {
                 return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
             }
+
             try
             {
                 var deletedWorkLog = await _userService.DeleteWorkLog(user.Id, workLogId).ConfigureAwait(false);
             }
-            catch (ArgumentException e) when (e.Message.Contains("Invalid userId", StringComparison.InvariantCultureIgnoreCase))
+            catch (ArgumentException e) when (e.Message.Contains("Invalid userId",
+                StringComparison.InvariantCultureIgnoreCase))
             {
                 ErrorMessage = "بله؟ شما؟";
             }
-            catch (ArgumentException e) when (e.Message.Contains("Work log not found", StringComparison.InvariantCultureIgnoreCase))
+            catch (ArgumentException e) when (e.Message.Contains("Work log not found",
+                StringComparison.InvariantCultureIgnoreCase))
             {
                 ErrorMessage = "کاری رو که می‌خوای پاک کنم پیدا نکردم :)";
             }
@@ -162,6 +176,7 @@ namespace Mirza.Web.Pages
             {
                 ErrorMessage = "یه اتفاقی افتاده عجیب! نمی‌دونم چی‌کار کنم!";
             }
+
             return RedirectToPage();
         }
     }
