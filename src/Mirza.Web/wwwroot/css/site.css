@@ -1,65 +1,84 @@
-﻿/* Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification\
-for details on configuring this project to bundle and minify static web assets. */
-
-a.navbar-brand {
-  white-space: normal;
-  text-align: center;
-  word-break: break-all;
+﻿body,
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4 {
+    font-family: "Cairo";
 }
 
-/* Sticky footer styles
--------------------------------------------------- */
-html {
-  font-size: 14px;
-}
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
+/*
+ * bootstrap-tagsinput v0.8.0
+ * 
+ */
+
+.bootstrap-tagsinput {
+    background-color: #fff;
+    /*border: 1px solid #ccc;*/
+    /*box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);*/
+    display: inline-block;
+    padding: 4px 6px;
+    color: #555;
+    vertical-align: middle;
+    border-radius: 4px;
+    width: 100%;
+    line-height: 22px;
+    cursor: text;
 }
 
-.container {
-  max-width: 960px;
+.bootstrap-tagsinput input {
+    border: none;
+    box-shadow: none;
+    outline: none;
+    background-color: transparent;
+    padding: 0 6px;
+    margin: 0;
+    /*width: auto;*/
+    max-width: inherit;
 }
 
-.pricing-header {
-  max-width: 700px;
+.bootstrap-tagsinput.form-control input::-moz-placeholder {
+    color: #777;
+    opacity: 1;
 }
 
-.border-top {
-  border-top: 1px solid #e5e5e5;
-}
-.border-bottom {
-  border-bottom: 1px solid #e5e5e5;
+.bootstrap-tagsinput.form-control input:-ms-input-placeholder {
+    color: #777;
 }
 
-.box-shadow {
-  box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
+.bootstrap-tagsinput.form-control input::-webkit-input-placeholder {
+    color: #777;
 }
 
-button.accept-policy {
-  font-size: 1rem;
-  line-height: inherit;
+.bootstrap-tagsinput input:focus {
+    border: none;
+    box-shadow: none;
 }
 
-/* Sticky footer styles
--------------------------------------------------- */
-html {
-  position: relative;
-  min-height: 100%;
+.bootstrap-tagsinput .badge {
+    margin-right: 2px;
+    color: white;
+    background-color: #0275d8;
+    padding: 5px 8px;
+    border-radius: 3px;
+    border: 1px solid #01649e
 }
 
-body {
-  /* Margin bottom by footer height */
-  margin-bottom: 60px;
+.bootstrap-tagsinput .badge [data-role="remove"] {
+    margin-left: 8px;
+    cursor: pointer;
 }
-.footer {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  overflow: scroll;
-  white-space: nowrap;
-  /* Set the fixed height of the footer here */
-  height: 60px;
-  line-height: 60px; /* Vertically center the text there */
+
+.bootstrap-tagsinput .badge [data-role="remove"]:after {
+    content: "×";
+    padding: 0px 4px;
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    font-size: 13px
+}
+
+.bootstrap-tagsinput .badge [data-role="remove"]:hover:after {
+
+    background-color: rgba(0, 0, 0, 0.62);
+}
+
+.bootstrap-tagsinput .badge [data-role="remove"]:hover:active {
+    box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
 }
