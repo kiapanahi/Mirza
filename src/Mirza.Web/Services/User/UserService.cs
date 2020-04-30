@@ -18,6 +18,7 @@ namespace Mirza.Web.Services.User
         private readonly ILogger<UserService> _logger;
         private readonly UserValidator _userValidator;
         private readonly WorkLogValidator _workLogValidator;
+        private readonly TagValidator _tagValidator;
 
         public UserService(MirzaDbContext dbContext, ILogger<UserService> logger)
         {
@@ -25,6 +26,7 @@ namespace Mirza.Web.Services.User
             _logger = logger;
             _userValidator = new UserValidator();
             _workLogValidator = new WorkLogValidator();
+            _tagValidator = new TagValidator();
         }
 
         #region AccessKey Manipulation
@@ -65,9 +67,9 @@ namespace Mirza.Web.Services.User
         public async Task<AccessKey> DeactivateAccessKey(int userId, int accessKeyId)
         {
             var accessKey = await _dbContext.AccessKeySet
-                .Where(w => w.OwnerId == userId)
-                .SingleOrDefaultAsync(s => s.Id == accessKeyId)
-                .ConfigureAwait(false);
+                                            .Where(w => w.OwnerId == userId)
+                                            .SingleOrDefaultAsync(s => s.Id == accessKeyId)
+                                            .ConfigureAwait(false);
 
             if (accessKey == null)
             {
@@ -147,8 +149,8 @@ namespace Mirza.Web.Services.User
         public async Task<IEnumerable<AccessKey>> GetAllAccessKeys(int userId, bool activeOnly = false)
         {
             var user = await _dbContext.UserSet.Include(u => u.AccessKeys)
-                .SingleOrDefaultAsync(a => a.Id == userId)
-                .ConfigureAwait(false);
+                                       .SingleOrDefaultAsync(a => a.Id == userId)
+                                       .ConfigureAwait(false);
 
             if (user == null)
             {
@@ -164,7 +166,6 @@ namespace Mirza.Web.Services.User
             return keys;
         }
 
-
         #endregion
 
         #region WorkLog Manipulation
@@ -176,7 +177,16 @@ namespace Mirza.Web.Services.User
                 throw new ArgumentNullException(nameof(workLog));
             }
 
-            var validationResult = _workLogValidator.Validate(workLog);
+            var validationResult = await _workLogValidator.ValidateAsync(workLog).ConfigureAwait(false);
+            var tagValidationResults = workLog.Tags.Select(t => _tagValidator.Validate(t));
+            foreach (var tagValidationResult in tagValidationResults.Where(w => !w.IsValid))
+            {
+                foreach (var error in tagValidationResult.Errors)
+                {
+                    validationResult.Errors.Add(error);
+                }
+            }
+
             if (!validationResult.IsValid)
             {
                 throw new WorkLogModelValidationException(validationResult
@@ -212,7 +222,8 @@ namespace Mirza.Web.Services.User
                     EntryDate = workLog.EntryDate.Date,
                     StartTime = workLog.StartTime,
                     EndTime = workLog.EndTime,
-                    UserId = user.Id
+                    UserId = user.Id,
+                    Tags = workLog.Tags
                 });
                 await _dbContext.SaveChangesAsync().ConfigureAwait(false);
                 return addResult.Entity;
@@ -241,6 +252,7 @@ namespace Mirza.Web.Services.User
             {
                 throw new ArgumentException($"Work log not found. Id: {workLogId}", nameof(workLogId));
             }
+
             if (user.WorkLog.Remove(workLogToRemove))
             {
                 try
@@ -253,14 +265,12 @@ namespace Mirza.Web.Services.User
                     _logger.LogError("Exception occured while deleting worklog", e);
                     throw;
                 }
-
             }
             else
             {
                 throw new InvalidOperationException($"Error occured while trying to remove worklog {workLogId} " +
-                    $"from user: {userId} work log collection");
+                                                    $"from user: {userId} work log collection");
             }
-
         }
 
         public async Task<WorkLogReportOutput> GetWorkLogReport(int userId, DateTime logDate)
@@ -268,6 +278,7 @@ namespace Mirza.Web.Services.User
             try
             {
                 var logItems = await _dbContext.WorkLogSet
+                                               .Include(w => w.Tags)
                                                .Where(w => w.UserId == userId && w.EntryDate.Date == logDate.Date)
                                                .Select(s => s.ToWorkLogReportItem())
                                                .ToListAsync()

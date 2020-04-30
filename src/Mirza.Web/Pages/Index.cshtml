@@ -7,7 +7,9 @@
 @if (!String.IsNullOrEmpty(Model.ErrorMessage))
 {
     <div class="alert alert-danger alert-dismissible" role="alert">
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
         @Model.ErrorMessage
     </div>
 }
@@ -39,15 +41,22 @@
                             <span asp-validation-for="Input.End" class="text-danger"></span>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label asp-for="Input.Description">توضیحات</label>
-                        <textarea class="form-control" asp-for="Input.Description"></textarea>
-                        <span asp-validation-for="Input.Description" class="text-danger"></span>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label asp-for="Input.Description">توضیحات</label>
+                            <textarea class="form-control" asp-for="Input.Description"></textarea>
+                            <span asp-validation-for="Input.Description" class="text-danger"></span>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label asp-for="Input.Details">جزئیات</label>
+                            <textarea class="form-control" asp-for="Input.Details"></textarea>
+                            <span asp-validation-for="Input.Details" class="text-danger"></span>
+                        </div>
                     </div>
                     <div class="form-group">
-                        <label asp-for="Input.Details">جزئیات</label>
-                        <textarea class="form-control" asp-for="Input.Details"></textarea>
-                        <span asp-validation-for="Input.Details" class="text-danger"></span>
+                        <label asp-for="Input.Details">برچسب‌ها</label>
+                        <input class="form-control" asp-for="Input.Tags" data-role="tagsinput" />
+                        <span asp-validation-for="Input.Tags" class="text-danger"></span>
                     </div>
                     <button type="submit" class="btn btn-info">میــرزا! بنویس!</button>
                 </form>
@@ -73,6 +82,7 @@
                             <th>پایان</th>
                             <th>توضیحات</th>
                             <th>جزئیات</th>
+                            <th>برچسب‌ها</th>
                             <th>...</th>
                         </tr>
                     </thead>
@@ -85,6 +95,12 @@
                                 <td>@logEntry.EndTime</td>
                                 <td>@logEntry.Description</td>
                                 <td>@logEntry.Details</td>
+                                <td>
+                                    @foreach (var tag in logEntry.Tags)
+                                    {
+                                        <span class="badge badge-info">@tag.Value</span>
+                                    }
+                                </td>
                                 <td>
                                     <form method="post">
                                         <input type="hidden" name="workLogId" value="@logEntry.Id" />
