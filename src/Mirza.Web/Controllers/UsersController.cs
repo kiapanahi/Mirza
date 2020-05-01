@@ -249,7 +249,8 @@ namespace Mirza.Web.Controllers
                     EndTime = endTime,
                     Description = input.Description ?? "-",
                     Details = input.Detail ?? "-",
-                    EntryDate = DateTime.Today.Date
+                    EntryDate = DateTime.Today.Date,
+                    Tags = input.Tags?.Select(t => new Tag(t)).ToArray() ?? Array.Empty<Tag>()
                 };
                 var log = await _userService.AddWorkLog(userId, model)
                                             .ConfigureAwait(false);
