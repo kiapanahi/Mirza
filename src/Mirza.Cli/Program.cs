@@ -1,6 +1,7 @@
 ﻿using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.CommandLine.Parsing;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -18,7 +19,7 @@ namespace Mirza.Cli
     internal static class Program
     {
         private static readonly HttpClient HttpClient =
-            new HttpClient(new HttpClientHandler {AllowAutoRedirect = false})
+            new HttpClient(new HttpClientHandler { AllowAutoRedirect = false })
             {
 #if DEBUG
                 BaseAddress = new Uri(@"https://localhost:5001")
@@ -32,7 +33,7 @@ namespace Mirza.Cli
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "Mirza");
 
-        private static readonly string[] ValidAcceptResponses = {string.Empty, "Y", "YES"};
+        private static readonly string[] ValidAcceptResponses = { string.Empty, "Y", "YES" };
 
         private static string ConfigFile => Path.Join(MirzaConfigDirectory, ".mirza");
 
@@ -307,7 +308,24 @@ namespace Mirza.Cli
             };
             logCommand.AddArgument(detailsArg);
 
-            logCommand.Handler = CommandHandler.Create<TimeSpan, TimeSpan, string, string>(HandleLogWorkCommand);
+            var tagsOption = new Option<string[]>("--tag",
+                (ar) =>
+                {
+                    var value = (ar.Tokens
+                    .FirstOrDefault(tagsOption => tagsOption.Type == TokenType.Argument)?.Value ?? "")
+                    .Trim()
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(s => s.Trim())
+                    .Where(w => !string.IsNullOrEmpty(w))
+                    .ToArray();
+
+                    return value ?? Array.Empty<string>();
+                },
+                isDefault: true,
+                "Tags related to the worklog");
+            logCommand.AddOption(tagsOption);
+
+            logCommand.Handler = CommandHandler.Create<TimeSpan, TimeSpan, string, string, string[]>(HandleLogWorkCommand);
 
             rootCmd.AddCommand(logCommand);
         }
@@ -316,7 +334,7 @@ namespace Mirza.Cli
         {
             var request = new HttpRequestMessage(HttpMethod.Get, $"/api/users/detail/{accessKey}")
             {
-                Headers = {Authorization = new AuthenticationHeaderValue("AccessKey", accessKey)}
+                Headers = { Authorization = new AuthenticationHeaderValue("AccessKey", accessKey) }
             };
 
             var result = await HttpClient.SendAsync(request);
@@ -342,7 +360,7 @@ namespace Mirza.Cli
             Console.WriteLine($"access key set to {accessKey}");
         }
 
-        private static async Task HandleLogWorkCommand(TimeSpan from, TimeSpan to, string desc, string details)
+        private static async Task HandleLogWorkCommand(TimeSpan from, TimeSpan to, string desc, string details, string[] tag)
         {
             if (!IsAuthenticated())
             {
@@ -358,11 +376,11 @@ namespace Mirza.Cli
 
             var user = GetUserFromConfigFile();
 
-            var consented = GetConsentForSend(from, to, desc, details, user);
+            var consented = GetConsentForSend(from, to, desc, details, tag, user);
 
             if (consented)
             {
-                await SendWorkLogToServerAndHandleResponse(from, to, desc, details, accessKey);
+                await SendWorkLogToServerAndHandleResponse(from, to, desc, details, tag, accessKey);
             }
             else
             {
@@ -371,16 +389,16 @@ namespace Mirza.Cli
         }
 
         private static async Task SendWorkLogToServerAndHandleResponse(TimeSpan from, TimeSpan to, string desc,
-            string details,
+            string details, string[] tags,
             string accessKey)
         {
-            var requestObject = new AddWorkLogServiceInput(from, to, desc, details);
+            var requestObject = new AddWorkLogServiceInput(from, to, desc, details, tags);
             var serialized = JsonSerializer.Serialize(requestObject);
             var content = new StringContent(serialized, Encoding.UTF8, "application/json");
             var requestMessage = new HttpRequestMessage(HttpMethod.Post, "api/users/workLog")
             {
                 Content = content,
-                Headers = {Authorization = new AuthenticationHeaderValue("AccessKey", accessKey)}
+                Headers = { Authorization = new AuthenticationHeaderValue("AccessKey", accessKey) }
             };
             var httpResponse = await HttpClient.SendAsync(requestMessage);
 
@@ -418,13 +436,14 @@ namespace Mirza.Cli
             }
         }
 
-        private static bool GetConsentForSend(TimeSpan from, TimeSpan to, string desc, string details, UserModel user)
+        private static bool GetConsentForSend(TimeSpan from, TimeSpan to, string desc, string details, string[] tag, UserModel user)
         {
             Console.WriteLine($"Dear {user.FirstName}, I'm adding a work log for you with the following details:");
             Console.WriteLine();
             Console.WriteLine($"\t{Utils.GetCurrentDateInPersian()}:\t{from} - {to}\t(duration: {to - from})");
             Console.WriteLine($"\tDescription:\t{desc ?? "-"}");
             Console.WriteLine($"\tDetails:\t{details ?? "-"}");
+            Console.WriteLine($"\tTags:\t\t{{{string.Join(", ", tag)}}}");
             Console.WriteLine();
             Console.WriteLine("if the information is correct, press 'y' otherwise any other key (default: y)");
             Console.Write(">");
