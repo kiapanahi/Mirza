@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <UserSecretsId>787d7984-a6ff-4a25-b922-9471bcb15c47</UserSecretsId>
-    <Version>0.5.0</Version>
+    <Version>0.5.1</Version>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>..\..</DockerfileContext>
   </PropertyGroup>
