@@ -60,6 +60,7 @@ namespace Mirza.Web.Pages
             [StringLength(500, ErrorMessage = "چه خبرته؟ جزئیات رو به ۵۰۰ کاراکتر محدود کن!")]
             public string Details { get; set; }
 
+
             public string Tags { get; set; }
         }
 
@@ -108,7 +109,7 @@ namespace Mirza.Web.Pages
                 _ = TimeSpan.TryParse(Input.Start, out var startTime);
                 _ = TimeSpan.TryParse(Input.End, out var endTime);
 
-                var tags = Input.Tags.Split(',')
+                var tags = (Input.Tags ?? "").Split(',')
                                 .Select(t => t.Trim())
                                 .Where(t => !string.IsNullOrEmpty(t))
                                 .Select(t => new Tag(t))
