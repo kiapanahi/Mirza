@@ -29,35 +29,37 @@ namespace Mirza.Web
             services.AddRazorPages();
 
             services.AddAuthentication(o =>
-                {
-                    o.DefaultScheme = IdentityConstants.ApplicationScheme;
-                    o.DefaultSignInScheme = IdentityConstants.ExternalScheme;
-                })
-                .AddScheme<AccessKeyAuthenticationOptions, AccessKeyAuthenticationHandler>(AccessKeyAuthenticationDefaults.AuthenticationScheme, null)
-                .AddIdentityCookies(o => { });
+                    {
+                        o.DefaultScheme = IdentityConstants.ApplicationScheme;
+                        o.DefaultSignInScheme = IdentityConstants.ExternalScheme;
+                    })
+                    .AddScheme<AccessKeyAuthenticationOptions, AccessKeyAuthenticationHandler>(
+                        AccessKeyAuthenticationDefaults.AuthenticationScheme, null)
+                    .AddIdentityCookies(o => { });
 
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IReportService, ReportService>();
 
             services.AddDbContext<MirzaDbContext>(options =>
-                    options.UseSqlServer(Configuration.GetConnectionString("MirzaDbContext")));
+                options.UseSqlServer(Configuration.GetConnectionString("MirzaDbContext")));
 
 
             services.AddIdentityCore<MirzaUser>(options =>
-                {
-                    options.SignIn.RequireConfirmedAccount = true;
-                    options.SignIn.RequireConfirmedPhoneNumber = false;
-                    options.SignIn.RequireConfirmedEmail = false;
+                    {
+                        options.SignIn.RequireConfirmedAccount = true;
+                        options.SignIn.RequireConfirmedPhoneNumber = false;
+                        options.SignIn.RequireConfirmedEmail = false;
 
-                    options.Password.RequireDigit = false;
-                    options.Password.RequireLowercase = false;
-                    options.Password.RequireNonAlphanumeric = false;
-                    options.Password.RequireUppercase = false;
-                    options.Password.RequiredLength = 6;
-                })
-                .AddDefaultUI()
-                .AddDefaultTokenProviders()
-                .AddEntityFrameworkStores<MirzaDbContext>();
+                        options.Password.RequireDigit = false;
+                        options.Password.RequireLowercase = false;
+                        options.Password.RequireNonAlphanumeric = false;
+                        options.Password.RequireUppercase = false;
+                        options.Password.RequiredLength = 6;
+                    })
+                    .AddDefaultUI()
+                    .AddDefaultTokenProviders()
+                    .AddRoles<MirzaRole>()
+                    .AddEntityFrameworkStores<MirzaDbContext>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
