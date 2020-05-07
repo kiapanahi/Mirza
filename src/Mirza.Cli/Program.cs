@@ -312,17 +312,17 @@ namespace Mirza.Cli
                 (ar) =>
                 {
                     var value = (ar.Tokens
-                    .FirstOrDefault(tagsOption => tagsOption.Type == TokenType.Argument)?.Value ?? "")
+                    .FirstOrDefault(token => token.Type == TokenType.Argument)?.Value ?? "")
                     .Trim()
                     .Split(',', StringSplitOptions.RemoveEmptyEntries)
                     .Select(s => s.Trim())
                     .Where(w => !string.IsNullOrEmpty(w))
                     .ToArray();
 
-                    return value ?? Array.Empty<string>();
+                    return value;
                 },
                 isDefault: true,
-                "Tags related to the worklog");
+                "Tags related to the work log");
             logCommand.AddOption(tagsOption);
 
             logCommand.Handler = CommandHandler.Create<TimeSpan, TimeSpan, string, string, string[]>(HandleLogWorkCommand);
