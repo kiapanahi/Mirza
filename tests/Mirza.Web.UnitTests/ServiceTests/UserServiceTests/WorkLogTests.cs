@@ -82,8 +82,8 @@ namespace Mirza.Web.UnitTests.ServiceTests.UserServiceTests
             Assert.Equal("worklog 2", remainingWorkLog.Description);
             Assert.Equal("worklog detail 2", remainingWorkLog.Details);
             Assert.Equal(DateTime.Today.Date, remainingWorkLog.WorkLogDate);
-            Assert.Equal("09:45:00", remainingWorkLog.StartTime);
-            Assert.Equal("15:15:00", remainingWorkLog.EndTime);
+            Assert.Equal("09:45", remainingWorkLog.StartTime);
+            Assert.Equal("15:15", remainingWorkLog.EndTime);
         }
 
 
