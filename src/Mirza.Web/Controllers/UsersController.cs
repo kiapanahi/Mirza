@@ -306,7 +306,7 @@ namespace Mirza.Web.Controllers
 
                 return Ok(report);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return StatusCode(500, new
                 {
