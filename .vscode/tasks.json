@@ -14,6 +14,31 @@
             "problemMatcher": "$msCompile"
         },
         {
+            "label": "test",
+            "type": "process",
+            "command": "dotnet",
+            "args": [
+                "test",
+                "--verbosity",
+                "minimal"
+            ],
+            "dependsOn": "build",
+            "detail": "Runs 'dotnet test --verbosity minimal' in solution file",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": true
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
             "label": "publish",
             "command": "dotnet",
             "type": "process",
