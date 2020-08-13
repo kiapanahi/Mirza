@@ -1,5 +1,9 @@
+using System;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Mirza.Web.Data;
 
 namespace Mirza.Web
 {
@@ -7,7 +11,18 @@ namespace Mirza.Web
     {
         public static void Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
+            var host = CreateHostBuilder(args).Build();
+
+            UpdateDatabase(host);
+
+            host.Run();
+        }
+
+        private static void UpdateDatabase(IHost host)
+        {
+            using var scope = host.Services.CreateScope();
+            using var ctx = scope.ServiceProvider.GetService<MirzaDbContext>();
+            ctx.Database.Migrate();
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
