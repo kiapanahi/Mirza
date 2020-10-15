@@ -90,6 +90,7 @@ namespace Mirza.Web.Controllers
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for
         // more details see https://aka.ms/RazorPagesCRUD.
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<MirzaUser>> PostUser(MirzaUser user)
         {
             try
@@ -118,6 +119,7 @@ namespace Mirza.Web.Controllers
 
         // DELETE: api/Users/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<MirzaUser>> DeleteUser(int id)
         {
             try
@@ -247,7 +249,8 @@ namespace Mirza.Web.Controllers
                     EndTime = endTime,
                     Description = input.Description ?? "-",
                     Details = input.Detail ?? "-",
-                    EntryDate = DateTime.Today.Date
+                    EntryDate = DateTime.Today.Date,
+                    Tags = input.Tags?.Select(t => new Tag(t)).ToArray() ?? Array.Empty<Tag>()
                 };
                 var log = await _userService.AddWorkLog(userId, model)
                                             .ConfigureAwait(false);
@@ -303,11 +306,46 @@ namespace Mirza.Web.Controllers
 
                 return Ok(report);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return StatusCode(500, new
                 {
                     ErrorMessage = "Error while compiling work log report",
+                    ErrorDetail = $"Internal Error. LogId: {HttpContext.TraceIdentifier}"
+                });
+            }
+        }
+
+        [HttpDelete("worklog/{id}")]
+        public async Task<ActionResult<WorkLog>> DeleteWorkLog(int id)
+        {
+            var userIdClaimValue = User.Claims
+                                       .FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value ?? "-1";
+
+            if (!int.TryParse(userIdClaimValue, out var userId))
+            {
+                return BadRequest(new { ErrorMessage = "Could not acquire user id from request" });
+            }
+
+            try
+            {
+                var log = await _userService.DeleteWorkLog(userId, id)
+                                            .ConfigureAwait(false);
+                return Ok(new { log.Id });
+            }
+            catch (ArgumentException e) when (e.Message.Contains("Invalid userId", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return BadRequest(new { ErrorMessage = "Invalid user id" });
+            }
+            catch (ArgumentException e) when (e.Message.Contains("Work log not found", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return BadRequest(new { ErrorMessage = $"Worklog Id {id} not found for user {userId}" });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    ErrorMessage = "Error while deleting work log",
                     ErrorDetail = $"Internal Error. LogId: {HttpContext.TraceIdentifier}"
                 });
             }

@@ -1,23 +1,33 @@
 ﻿using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.CommandLine.Parsing;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Mirza.Cli.Models;
 using Mirza.Common;
+// ReSharper disable UnusedMember.Local
 
 namespace Mirza.Cli
 {
     internal static class Program
     {
-        private static readonly HttpClient HttpClient = new HttpClient(new HttpClientHandler() { AllowAutoRedirect = false })
-        {
+        private static readonly HttpClient HttpClient =
+            new HttpClient(new HttpClientHandler { AllowAutoRedirect = false })
+            {
+#if DEBUG
+                BaseAddress = new Uri(@"https://localhost:5001")
+#endif
+#if RELEASE
             BaseAddress = new Uri(@"http://app.mirzza.ir")
-        };
+#endif
+            };
 
         private static readonly string MirzaConfigDirectory = Path.Join(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -39,6 +49,7 @@ namespace Mirza.Cli
             AddBedroodCommand(mirzaCommand);
             AddBenevisCommand(mirzaCommand);
             AddCheKhabarCommand(mirzaCommand);
+            AddKhatbezanCommand(mirzaCommand);
 
             await mirzaCommand.InvokeAsync(args);
         }
@@ -59,13 +70,28 @@ namespace Mirza.Cli
             rootCmd.AddCommand(logCommand);
         }
 
-        private static async Task HandleWorkLogReportCommand(DateTime date)
+        private static void AddKhatbezanCommand(Command rootCmd)
         {
-            var dateStr = date.ToString("yyyy-MM-dd");
+            var logCommand = new Command("khatbezan", "Delete a work log");
+
+            var workLogArg = new Argument<int>("WorkLogId")
+            {
+                Description = "Work log id to delete",
+                Arity = ArgumentArity.ExactlyOne
+            };
+            logCommand.AddArgument(workLogArg);
+
+            logCommand.Handler = CommandHandler.Create<int>(HandleWorkLogDeleteCommand);
+
+            rootCmd.AddCommand(logCommand);
+        }
+
+        private static async Task HandleWorkLogDeleteCommand(int workLogId)
+        {
             if (!IsAuthenticated())
             {
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.Error.WriteLine("You first have to say hello to Mirza in order for him to know who you are...");
+                await Console.Error.WriteLineAsync("You first have to say hello to Mirza in order for him to know who you are...");
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine("Try running 'mirza dorood <access-key>'");
                 Console.ResetColor();
@@ -74,7 +100,57 @@ namespace Mirza.Cli
 
             SetHttpClientAccessKeyHeader();
 
-            var httpResponse = await HttpClient.GetAsync($"api/users/worklog?date={dateStr}");
+            var httpResponse = await HttpClient.DeleteAsync($"api/users/workLog/{workLogId}");
+            var responseContent = await httpResponse.Content.ReadAsStringAsync();
+            if (httpResponse.IsSuccessStatusCode)
+            {
+                var response = JsonSerializer.Deserialize<DeleteWorkLogServiceSuccessResponse>(responseContent,
+                    new JsonSerializerOptions
+                    {
+                        IgnoreNullValues = false,
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                        PropertyNameCaseInsensitive = true
+                    });
+                Console.WriteLine($"Done, work log {response.Id} deleted successfully");
+            }
+            else
+            {
+                var errorResponse =
+                    JsonSerializer.Deserialize<DeleteWorkLogServiceErrorResponse>(responseContent,
+                        new JsonSerializerOptions
+                        {
+                            IgnoreNullValues = false,
+                            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                            PropertyNameCaseInsensitive = false
+                        });
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine("oops!");
+                Console.WriteLine(errorResponse.ErrorMessage);
+                if (errorResponse.ErrorDetails != null)
+                {
+                    Console.WriteLine(errorResponse.ErrorDetails);
+                }
+
+                Console.ResetColor();
+            }
+        }
+
+        private static async Task HandleWorkLogReportCommand(DateTime date)
+        {
+            var dateStr = date.ToString("yyyy-MM-dd");
+            if (!IsAuthenticated())
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                await Console.Error.WriteLineAsync("You first have to say hello to Mirza in order for him to know who you are...");
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("Try running 'mirza dorood <access-key>'");
+                Console.ResetColor();
+                return;
+            }
+
+            SetHttpClientAccessKeyHeader();
+
+            var httpResponse = await HttpClient.GetAsync($"api/users/workLog?date={dateStr}");
             var responseContent = await httpResponse.Content.ReadAsStringAsync();
             if (httpResponse.IsSuccessStatusCode)
             {
@@ -95,13 +171,14 @@ namespace Mirza.Cli
 
                 Console.WriteLine($"{border} Total => {report.TotalDuration} {border}");
             }
-            else if (httpResponse.StatusCode == System.Net.HttpStatusCode.Found)
+            else if (httpResponse.StatusCode == HttpStatusCode.Found)
             {
-                if (httpResponse.Headers.Location.AbsolutePath.Equals("/Identity/Account/Login", StringComparison.OrdinalIgnoreCase))
+                if (httpResponse.Headers.Location.AbsolutePath.Equals("/Identity/Account/Login",
+                    StringComparison.OrdinalIgnoreCase))
                 {
                     Console.ForegroundColor = ConsoleColor.Yellow;
                     Console.WriteLine("oops!");
-                    Console.WriteLine("it looks like your accesskey is not valid.");
+                    Console.WriteLine("it looks like your access key is not valid.");
 
                     Console.ResetColor();
                 }
@@ -231,7 +308,24 @@ namespace Mirza.Cli
             };
             logCommand.AddArgument(detailsArg);
 
-            logCommand.Handler = CommandHandler.Create<TimeSpan, TimeSpan, string, string>(HandleLogWorkCommand);
+            var tagsOption = new Option<string[]>("--tag",
+                (ar) =>
+                {
+                    var value = (ar.Tokens
+                    .FirstOrDefault(token => token.Type == TokenType.Argument)?.Value ?? "")
+                    .Trim()
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(s => s.Trim())
+                    .Where(w => !string.IsNullOrEmpty(w))
+                    .ToArray();
+
+                    return value;
+                },
+                isDefault: true,
+                "Tags related to the work log");
+            logCommand.AddOption(tagsOption);
+
+            logCommand.Handler = CommandHandler.Create<TimeSpan, TimeSpan, string, string, string[]>(HandleLogWorkCommand);
 
             rootCmd.AddCommand(logCommand);
         }
@@ -247,7 +341,7 @@ namespace Mirza.Cli
             if (!result.IsSuccessStatusCode)
             {
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.Error.WriteLine("Error validating access-key");
+                await Console.Error.WriteLineAsync("Error validating access-key");
                 Console.ResetColor();
                 return;
             }
@@ -259,34 +353,34 @@ namespace Mirza.Cli
             EnsureMirzaConfigFile();
             await using (var s = new StreamWriter(ConfigFile, true, Encoding.UTF8))
             {
-                s.WriteLine(accessKey);
-                s.Write(content);
+                await s.WriteLineAsync(accessKey);
+                await s.WriteAsync(content);
             }
 
             Console.WriteLine($"access key set to {accessKey}");
         }
 
-        private static async Task HandleLogWorkCommand(TimeSpan from, TimeSpan to, string desc, string details)
+        private static async Task HandleLogWorkCommand(TimeSpan from, TimeSpan to, string desc, string details, string[] tag)
         {
             if (!IsAuthenticated())
             {
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.Error.WriteLine("You first have to say hello to Mirza in order for him to know who you are...");
+                await Console.Error.WriteLineAsync("You first have to say hello to Mirza in order for him to know who you are...");
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine("Try running 'mirza dorood <access-key>'");
                 Console.ResetColor();
                 return;
             }
 
-            var accessKey = File.ReadAllLines(ConfigFile).First();
+            var accessKey = (await File.ReadAllLinesAsync(ConfigFile)).First();
 
             var user = GetUserFromConfigFile();
 
-            var consented = GetConsentForSend(from, to, desc, details, user);
+            var consented = GetConsentForSend(from, to, desc, details, tag, user);
 
             if (consented)
             {
-                await SendWorkLogToServerAndHandleResponse(from, to, desc, details, accessKey);
+                await SendWorkLogToServerAndHandleResponse(from, to, desc, details, tag, accessKey);
             }
             else
             {
@@ -295,13 +389,13 @@ namespace Mirza.Cli
         }
 
         private static async Task SendWorkLogToServerAndHandleResponse(TimeSpan from, TimeSpan to, string desc,
-            string details,
+            string details, string[] tags,
             string accessKey)
         {
-            var requestObject = new AddWorkLogServiceInput(from, to, desc, details);
+            var requestObject = new AddWorkLogServiceInput(from, to, desc, details, tags);
             var serialized = JsonSerializer.Serialize(requestObject);
             var content = new StringContent(serialized, Encoding.UTF8, "application/json");
-            var requestMessage = new HttpRequestMessage(HttpMethod.Post, "api/users/worklog")
+            var requestMessage = new HttpRequestMessage(HttpMethod.Post, "api/users/workLog")
             {
                 Content = content,
                 Headers = { Authorization = new AuthenticationHeaderValue("AccessKey", accessKey) }
@@ -342,13 +436,14 @@ namespace Mirza.Cli
             }
         }
 
-        private static bool GetConsentForSend(TimeSpan from, TimeSpan to, string desc, string details, UserModel user)
+        private static bool GetConsentForSend(TimeSpan from, TimeSpan to, string desc, string details, string[] tag, UserModel user)
         {
             Console.WriteLine($"Dear {user.FirstName}, I'm adding a work log for you with the following details:");
             Console.WriteLine();
             Console.WriteLine($"\t{Utils.GetCurrentDateInPersian()}:\t{from} - {to}\t(duration: {to - from})");
             Console.WriteLine($"\tDescription:\t{desc ?? "-"}");
             Console.WriteLine($"\tDetails:\t{details ?? "-"}");
+            Console.WriteLine($"\tTags:\t\t{{{string.Join(", ", tag)}}}");
             Console.WriteLine();
             Console.WriteLine("if the information is correct, press 'y' otherwise any other key (default: y)");
             Console.Write(">");

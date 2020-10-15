@@ -1,4 +1,4 @@
-﻿namespace Mirza.Cli
+﻿namespace Mirza.Cli.Models
 {
     internal class AddWorkLogServiceSuccessResponse
     {

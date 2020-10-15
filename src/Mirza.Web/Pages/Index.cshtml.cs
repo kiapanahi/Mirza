@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -22,8 +23,10 @@ namespace Mirza.Web.Pages
             _userService = userService;
             _userManager = userManager;
         }
+
         [BindProperty]
         public InputModel Input { get; set; }
+
         public WorkLogReportOutput TodayWorkLog { get; set; }
 
         [TempData]
@@ -33,18 +36,19 @@ namespace Mirza.Web.Pages
         {
             [Display(Name = "تاریخ")]
             [DataType(DataType.Date)]
-            [Required(AllowEmptyStrings = false, ErrorMessage = "کاری که تاریخ نداره رو من تو کدوم صفحه‌ی تقویم بنویسم؟")]
+            [Required(AllowEmptyStrings = false,
+                ErrorMessage = "کاری که تاریخ نداره رو من تو کدوم صفحه‌ی تقویم بنویسم؟")]
             public DateTime Date { get; set; } = DateTime.Now;
 
             [Display(Name = "ساعت شروع")]
             [DataType(DataType.Time)]
             [Required(AllowEmptyStrings = false, ErrorMessage = "کاری که ساعت شروع نداشته باشه که نمی‌شه. نه؟")]
-            public TimeSpan Start { get; set; }
+            public string Start { get; set; }
 
             [Display(Name = "ساعت پایان")]
             [DataType(DataType.Time)]
             [Required(AllowEmptyStrings = false, ErrorMessage = "کاری که تموم نشده رو چطوری ثبت می‌کنی؟")]
-            public TimeSpan End { get; set; }
+            public string End { get; set; }
 
             [Display(Name = "توضیح")]
             [DataType(DataType.MultilineText)]
@@ -56,6 +60,8 @@ namespace Mirza.Web.Pages
             [StringLength(500, ErrorMessage = "چه خبرته؟ جزئیات رو به ۵۰۰ کاراکتر محدود کن!")]
             public string Details { get; set; }
 
+
+            public string Tags { get; set; }
         }
 
         public async Task<IActionResult> OnGetAsync()
@@ -66,9 +72,26 @@ namespace Mirza.Web.Pages
                 return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
             }
 
+            Input = new InputModel();
+
             TodayWorkLog = await _userService.GetWorkLogReport(user.Id, DateTime.Now.Date).ConfigureAwait(false);
 
-            Input = new InputModel();
+            string latestWorkItemEndTime;
+
+            if (TodayWorkLog == null || !TodayWorkLog.WorkLogItems.Any())
+            {
+                var now = DateTime.Now;
+                var minutes = now.Minute;
+                minutes -= (minutes % 5);
+
+                latestWorkItemEndTime = $"{now:HH}:{minutes:D2}";
+            }
+            else
+            {
+                latestWorkItemEndTime = TodayWorkLog.WorkLogItems.OrderByDescending(w => w.EndTime).First().EndTime;
+            }
+
+            Input.Start = latestWorkItemEndTime;
 
             return Page();
         }
@@ -83,6 +106,15 @@ namespace Mirza.Web.Pages
 
             try
             {
+                _ = TimeSpan.TryParse(Input.Start, out var startTime);
+                _ = TimeSpan.TryParse(Input.End, out var endTime);
+
+                var tags = (Input.Tags ?? "").Split(',')
+                                .Select(t => t.Trim())
+                                .Where(t => !string.IsNullOrEmpty(t))
+                                .Select(t => new Tag(t))
+                                .ToList();
+
                 _ = await _userService.AddWorkLog(user.Id, new WorkLog
                 {
                     User = user,
@@ -90,8 +122,9 @@ namespace Mirza.Web.Pages
                     Description = Input.Description ?? "-",
                     Details = Input.Details ?? "-",
                     EntryDate = Input.Date,
-                    StartTime = Input.Start,
-                    EndTime = Input.End
+                    StartTime = startTime,
+                    EndTime = endTime,
+                    Tags = tags
                 }).ConfigureAwait(false);
             }
             catch (ArgumentNullException)
@@ -109,6 +142,36 @@ namespace Mirza.Web.Pages
             catch (InvalidOperationException)
             {
                 ErrorMessage = "مگه میشه تو یه بازه‌ی زمانی دو تا کار کرده باشی؟ هان؟‌ میشه؟";
+            }
+            catch (Exception)
+            {
+                ErrorMessage = "یه اتفاقی افتاده عجیب! نمی‌دونم چی‌کار کنم!";
+            }
+
+            return RedirectToPage();
+        }
+
+        public async Task<IActionResult> OnPostDeleteWorkLogAsync(int workLogId)
+        {
+            var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
+            if (user == null)
+            {
+                return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+            }
+
+            try
+            {
+                var deletedWorkLog = await _userService.DeleteWorkLog(user.Id, workLogId).ConfigureAwait(false);
+            }
+            catch (ArgumentException e) when (e.Message.Contains("Invalid userId",
+                StringComparison.InvariantCultureIgnoreCase))
+            {
+                ErrorMessage = "بله؟ شما؟";
+            }
+            catch (ArgumentException e) when (e.Message.Contains("Work log not found",
+                StringComparison.InvariantCultureIgnoreCase))
+            {
+                ErrorMessage = "کاری رو که می‌خوای پاک کنم پیدا نکردم :)";
             }
             catch (Exception)
             {

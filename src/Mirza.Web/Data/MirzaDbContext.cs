@@ -67,8 +67,8 @@ namespace Mirza.Web.Data
                     b.HasKey(a => a.Id);
 
                     b.Property(a => a.LogDate)
-                    .IsRequired()
-                    .HasColumnType("datetime2");
+                     .IsRequired()
+                     .HasColumnType("datetime2");
 
                     b.Property(a => a.EntryDate)
                      .HasColumnType("date")
@@ -81,6 +81,21 @@ namespace Mirza.Web.Data
                     b.Property(a => a.EndTime)
                      .HasColumnType("time")
                      .IsRequired();
+
+                    b.HasMany(a => a.Tags)
+                     .WithOne(t => t.WorkLog);
+                })
+                .Entity<Tag>(b =>
+                {
+                    b.ToTable("Tags");
+                    b.HasKey(a => a.Id);
+
+                    b.HasOne(a => a.WorkLog)
+                     .WithMany(w => w.Tags);
+
+                    b.Property(a => a.Value)
+                     .IsRequired()
+                     .HasMaxLength(256);
                 })
                 .Entity<AccessKey>(b =>
                 {
@@ -88,7 +103,7 @@ namespace Mirza.Web.Data
 
                     b.HasKey(a => a.Id);
 
-                    b.HasIndex(a => new { a.OwnerId, a.State })
+                    b.HasIndex(a => new {a.OwnerId, a.State})
                      .HasName("IDX_Owner_State");
 
                     b.Property(a => a.Key)

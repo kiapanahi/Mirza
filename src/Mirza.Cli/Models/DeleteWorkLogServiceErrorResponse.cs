@@ -1,6 +1,6 @@
-﻿namespace Mirza.Cli
+﻿namespace Mirza.Cli.Models
 {
-    internal class AddWorkLogServiceErrorResponse
+    internal class DeleteWorkLogServiceErrorResponse
     {
         public string ErrorMessage { get; set; }
         public object ErrorDetails { get; set; }
