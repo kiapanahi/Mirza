@@ -2,7 +2,7 @@
 
 namespace Mirza.Web.Services.User
 {
-    public class UserNotFoundException : Exception
+    public class UserNotFoundException : ArgumentException
     {
         public int UserId { get; set; }
         public UserNotFoundException(int userId, string message) : base(message)
@@ -18,6 +18,18 @@ namespace Mirza.Web.Services.User
         public UserNotFoundException(int userId)
         {
             UserId = userId;
+        }
+
+        public UserNotFoundException()
+        {
+        }
+
+        public UserNotFoundException(string message) : base(message)
+        {
+        }
+
+        public UserNotFoundException(string message, Exception innerException) : base(message, innerException)
+        {
         }
     }
 }

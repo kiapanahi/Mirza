@@ -12,3 +12,5 @@ using System.Diagnostics.CodeAnalysis;
 [assembly: SuppressMessage("Design", "CA1034:Nested types should not be visible", Justification = "<Pending>", Scope = "type", Target = "~T:Mirza.Web.Areas.Identity.Pages.Account.RegisterModel.InputModel")]
 [assembly: SuppressMessage("Design", "CA1054:Uri parameters should not be strings", Justification = "<Pending>", Scope = "member", Target = "~M:Mirza.Web.Areas.Identity.Pages.Account.RegisterModel.OnGetAsync(System.String)~System.Threading.Tasks.Task")]
 [assembly: SuppressMessage("Design", "CA1054:Uri parameters should not be strings", Justification = "<Pending>", Scope = "member", Target = "~M:Mirza.Web.Areas.Identity.Pages.Account.RegisterModel.OnPostAsync(System.String)~System.Threading.Tasks.Task{Microsoft.AspNetCore.Mvc.IActionResult}")]
+[assembly: SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "<Pending>", Scope = "namespaceanddescendants", Target = "Mirza.Web.Areas.Identity")]
+[assembly: SuppressMessage("Design", "CA1062:Validate arguments of public methods", Justification = "<Pending>", Scope = "namespaceanddescendants", Target = "Mirza.Web.Migrations")]

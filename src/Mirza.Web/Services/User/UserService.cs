@@ -122,6 +122,7 @@ namespace Mirza.Web.Services.User
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
         public async Task<MirzaUser> GetUserWithActiveAccessKey(string accessKey)
         {
             try
@@ -215,16 +216,19 @@ namespace Mirza.Web.Services.User
 
             try
             {
-                var addResult = await _dbContext.WorkLogSet.AddAsync(new WorkLog
-                {
-                    Description = workLog.Description ?? "-",
-                    Details = workLog.Details ?? "-",
-                    EntryDate = workLog.EntryDate.Date,
-                    StartTime = workLog.StartTime,
-                    EndTime = workLog.EndTime,
-                    UserId = user.Id,
-                    Tags = workLog.Tags
-                });
+                var addResult = await _dbContext
+                    .WorkLogSet
+                    .AddAsync(new WorkLog
+                    {
+                        Description = workLog.Description ?? "-",
+                        Details = workLog.Details ?? "-",
+                        EntryDate = workLog.EntryDate.Date,
+                        StartTime = workLog.StartTime,
+                        EndTime = workLog.EndTime,
+                        UserId = user.Id,
+                        Tags = workLog.Tags
+                    })
+                    .ConfigureAwait(false);
                 await _dbContext.SaveChangesAsync().ConfigureAwait(false);
                 return addResult.Entity;
             }
@@ -305,7 +309,7 @@ namespace Mirza.Web.Services.User
         {
             try
             {
-                var user = await _dbContext.UserSet.FindAsync(id);
+                var user = await _dbContext.UserSet.FindAsync(id).ConfigureAwait(false);
                 user.IsActive = false;
                 await _dbContext.SaveChangesAsync().ConfigureAwait(false);
             }
@@ -318,7 +322,7 @@ namespace Mirza.Web.Services.User
 
         public async Task<MirzaUser> GetUser(int id)
         {
-            return await _dbContext.UserSet.FindAsync(id);
+            return await _dbContext.UserSet.FindAsync(id).ConfigureAwait(false);
         }
 
         public async Task<MirzaUser> Register(MirzaUser user)
@@ -345,7 +349,7 @@ namespace Mirza.Web.Services.User
 
             try
             {
-                await _dbContext.UserSet.AddAsync(user);
+                await _dbContext.UserSet.AddAsync(user).ConfigureAwait(false);
                 await _dbContext.SaveChangesAsync().ConfigureAwait(true);
                 return user;
             }

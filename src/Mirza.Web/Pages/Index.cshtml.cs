@@ -32,38 +32,6 @@ namespace Mirza.Web.Pages
         [TempData]
         public string ErrorMessage { get; set; }
 
-        public class InputModel
-        {
-            [Display(Name = "تاریخ")]
-            [DataType(DataType.Date)]
-            [Required(AllowEmptyStrings = false,
-                ErrorMessage = "کاری که تاریخ نداره رو من تو کدوم صفحه‌ی تقویم بنویسم؟")]
-            public DateTime Date { get; set; } = DateTime.Now;
-
-            [Display(Name = "ساعت شروع")]
-            [DataType(DataType.Time)]
-            [Required(AllowEmptyStrings = false, ErrorMessage = "کاری که ساعت شروع نداشته باشه که نمی‌شه. نه؟")]
-            public string Start { get; set; }
-
-            [Display(Name = "ساعت پایان")]
-            [DataType(DataType.Time)]
-            [Required(AllowEmptyStrings = false, ErrorMessage = "کاری که تموم نشده رو چطوری ثبت می‌کنی؟")]
-            public string End { get; set; }
-
-            [Display(Name = "توضیح")]
-            [DataType(DataType.MultilineText)]
-            [StringLength(500, ErrorMessage = "چه خبرته؟ توضیحات رو به ۵۰۰ کاراکتر محدود کن!")]
-            public string Description { get; set; }
-
-            [Display(Name = "جزئیات")]
-            [DataType(DataType.MultilineText)]
-            [StringLength(500, ErrorMessage = "چه خبرته؟ جزئیات رو به ۵۰۰ کاراکتر محدود کن!")]
-            public string Details { get; set; }
-
-
-            public string Tags { get; set; }
-        }
-
         public async Task<IActionResult> OnGetAsync()
         {
             var user = await _userManager.GetUserAsync(User).ConfigureAwait(false);
@@ -143,7 +111,7 @@ namespace Mirza.Web.Pages
             {
                 ErrorMessage = "مگه میشه تو یه بازه‌ی زمانی دو تا کار کرده باشی؟ هان؟‌ میشه؟";
             }
-            catch (Exception)
+            catch
             {
                 ErrorMessage = "یه اتفاقی افتاده عجیب! نمی‌دونم چی‌کار کنم!";
             }
@@ -173,12 +141,44 @@ namespace Mirza.Web.Pages
             {
                 ErrorMessage = "کاری رو که می‌خوای پاک کنم پیدا نکردم :)";
             }
-            catch (Exception)
+            catch
             {
                 ErrorMessage = "یه اتفاقی افتاده عجیب! نمی‌دونم چی‌کار کنم!";
             }
 
             return RedirectToPage();
         }
+    }
+
+    public class InputModel
+    {
+        [Display(Name = "تاریخ")]
+        [DataType(DataType.Date)]
+        [Required(AllowEmptyStrings = false,
+            ErrorMessage = "کاری که تاریخ نداره رو من تو کدوم صفحه‌ی تقویم بنویسم؟")]
+        public DateTime Date { get; set; } = DateTime.Now;
+
+        [Display(Name = "ساعت شروع")]
+        [DataType(DataType.Time)]
+        [Required(AllowEmptyStrings = false, ErrorMessage = "کاری که ساعت شروع نداشته باشه که نمی‌شه. نه؟")]
+        public string Start { get; set; }
+
+        [Display(Name = "ساعت پایان")]
+        [DataType(DataType.Time)]
+        [Required(AllowEmptyStrings = false, ErrorMessage = "کاری که تموم نشده رو چطوری ثبت می‌کنی؟")]
+        public string End { get; set; }
+
+        [Display(Name = "توضیح")]
+        [DataType(DataType.MultilineText)]
+        [StringLength(500, ErrorMessage = "چه خبرته؟ توضیحات رو به ۵۰۰ کاراکتر محدود کن!")]
+        public string Description { get; set; }
+
+        [Display(Name = "جزئیات")]
+        [DataType(DataType.MultilineText)]
+        [StringLength(500, ErrorMessage = "چه خبرته؟ جزئیات رو به ۵۰۰ کاراکتر محدود کن!")]
+        public string Details { get; set; }
+
+
+        public string Tags { get; set; }
     }
 }

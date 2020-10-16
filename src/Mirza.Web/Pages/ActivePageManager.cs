@@ -1,5 +1,5 @@
-﻿using System;
-using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using System;
 
 namespace Mirza.Web.Pages
 {
@@ -9,9 +9,9 @@ namespace Mirza.Web.Pages
 
 
 
-        public static string IndexNavClass(ViewContext viewContext) => PageNavClass(viewContext, Index);
+        public static string IndexNavClass(ViewContext viewContext) => PageNavClass(viewContext ?? throw new ArgumentNullException(nameof(viewContext)), Index);
 
-        public static string ActivatePage(ViewContext viewContext, string pageName) => PageNavClass(viewContext, pageName);
+        public static string ActivatePage(ViewContext viewContext, string pageName) => PageNavClass(viewContext ?? throw new ArgumentNullException(nameof(viewContext)), pageName);
 
         private static string PageNavClass(ViewContext viewContext, string page)
         {
