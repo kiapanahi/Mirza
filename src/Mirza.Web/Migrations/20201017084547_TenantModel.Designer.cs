@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Mirza.Web.Data;
 
 namespace Mirza.Web.Migrations
 {
     [DbContext(typeof(MirzaDbContext))]
-    partial class MirzaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20201017084547_TenantModel")]
+    partial class TenantModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -179,28 +181,6 @@ namespace Mirza.Web.Migrations
                     b.ToTable("AspNetRoles");
                 });
 
-            modelBuilder.Entity("Mirza.Web.Models.MirzaTeam", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(50)")
-                        .HasMaxLength(50);
-
-                    b.Property<int>("TenantId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TenantId");
-
-                    b.ToTable("Teams");
-                });
-
             modelBuilder.Entity("Mirza.Web.Models.MirzaTenant", b =>
                 {
                     b.Property<int>("Id")
@@ -282,6 +262,9 @@ namespace Mirza.Web.Migrations
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("TeamId")
+                        .HasColumnType("int");
+
                     b.Property<int>("TenantId")
                         .HasColumnType("int");
 
@@ -301,6 +284,8 @@ namespace Mirza.Web.Migrations
                         .IsUnique()
                         .HasName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
+
+                    b.HasIndex("TeamId");
 
                     b.HasIndex("TenantId");
 
@@ -329,19 +314,21 @@ namespace Mirza.Web.Migrations
                     b.ToTable("Tags");
                 });
 
-            modelBuilder.Entity("Mirza.Web.Models.TeamUser", b =>
+            modelBuilder.Entity("Mirza.Web.Models.Team", b =>
                 {
-                    b.Property<int>("TeamId")
-                        .HasColumnType("int");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(50)")
+                        .HasMaxLength(50);
 
-                    b.HasKey("TeamId", "UserId");
+                    b.HasKey("Id");
 
-                    b.HasIndex("UserId");
-
-                    b.ToTable("TeamUser");
+                    b.ToTable("Teams");
                 });
 
             modelBuilder.Entity("Mirza.Web.Models.WorkLog", b =>
@@ -439,19 +426,14 @@ namespace Mirza.Web.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Mirza.Web.Models.MirzaTeam", b =>
-                {
-                    b.HasOne("Mirza.Web.Models.MirzaTenant", "Tenant")
-                        .WithMany("Teams")
-                        .HasForeignKey("TenantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("Mirza.Web.Models.MirzaUser", b =>
                 {
-                    b.HasOne("Mirza.Web.Models.MirzaTenant", "Tenant")
+                    b.HasOne("Mirza.Web.Models.Team", "Team")
                         .WithMany("Members")
+                        .HasForeignKey("TeamId");
+
+                    b.HasOne("Mirza.Web.Models.MirzaTenant", "Tenant")
+                        .WithMany("Users")
                         .HasForeignKey("TenantId")
                         .IsRequired();
                 });
@@ -461,21 +443,6 @@ namespace Mirza.Web.Migrations
                     b.HasOne("Mirza.Web.Models.WorkLog", "WorkLog")
                         .WithMany("Tags")
                         .HasForeignKey("WorkLogId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Mirza.Web.Models.TeamUser", b =>
-                {
-                    b.HasOne("Mirza.Web.Models.MirzaTeam", "Team")
-                        .WithMany("Members")
-                        .HasForeignKey("TeamId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Mirza.Web.Models.MirzaUser", "User")
-                        .WithMany("Teams")
-                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

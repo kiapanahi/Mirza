@@ -48,9 +48,9 @@ namespace Mirza.Web.UnitTests.ServiceTests.UserServiceTests
         [Fact]
         public async Task AddAccessKey_NonExistingUser_Throws()
         {
-            var result = await Assert.ThrowsAsync<AccessKeyException>(() => UserService.AddAccessKey(50));
+            var result = await Assert.ThrowsAsync<AccessKeyException>(() => UserService.AddAccessKey(1000));
 
-            Assert.Equal("User id 50 does not exist", result.Message);
+            Assert.Equal("User id 1000 does not exist", result.Message);
         }
 
         [Fact]
@@ -79,9 +79,9 @@ namespace Mirza.Web.UnitTests.ServiceTests.UserServiceTests
         [Fact]
         public async Task DeactivateAccessKey_NonExistingUser_Throws()
         {
-            var result = await Assert.ThrowsAsync<AccessKeyException>(() => UserService.DeactivateAccessKey(50, "01234567890123456789012345678950"));
+            var result = await Assert.ThrowsAsync<AccessKeyException>(() => UserService.DeactivateAccessKey(1000, "01234567890123456789012345678950"));
 
-            Assert.Equal("User id 50 does not exist", result.Message);
+            Assert.Equal("User id 1000 does not exist", result.Message);
         }
 
         [Fact]
@@ -131,7 +131,7 @@ namespace Mirza.Web.UnitTests.ServiceTests.UserServiceTests
         [Fact]
         public async Task GetAllAccessKeys_NonExistingUser_Throws()
         {
-            const int nonExistingUserId = 100;
+            const int nonExistingUserId = 1000;
 
             await Assert.ThrowsAsync<UserNotFoundException>(() => UserService.GetAllAccessKeys(userId: nonExistingUserId, activeOnly: false));
 

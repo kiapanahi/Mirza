@@ -69,13 +69,13 @@ namespace Mirza.Web.UnitTests.ServiceTests.UserServiceTests
             Assert.Equal(u.LastName, result.LastName);
             Assert.True(result.IsActive);
 
-            Assert.Null(result.Team);
+            Assert.Null(result.Teams);
 
             Assert.NotNull(result.AccessKeys);
-            Assert.Equal(0, result.AccessKeys.Count);
+            Assert.Empty(result.AccessKeys);
 
             Assert.NotNull(result.WorkLog);
-            Assert.Equal(0, result.WorkLog.Count);
+            Assert.Empty(result.WorkLog);
         }
     }
 }

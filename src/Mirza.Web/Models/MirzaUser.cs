@@ -2,8 +2,6 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Identity;
 
-// ReSharper disable UnusedAutoPropertyAccessor.Global
-
 namespace Mirza.Web.Models
 {
     public class MirzaUser : IdentityUser<int>
@@ -12,8 +10,12 @@ namespace Mirza.Web.Models
         public string LastName { get; set; }
         public bool IsActive { get; set; } = true;
 
-        public int? TeamId { get; set; }
-        public Team Team { get; set; }
+        public int TenantId { get; set; }
+        public MirzaTenant Tenant { get; set; }
+
+
+        [SuppressMessage("Usage", "CA2227:Collection properties should be read only", Justification = "<Pending>")]
+        public ICollection<TeamUser> Teams { get; set; }
 
         [SuppressMessage("Usage", "CA2227:Collection properties should be read only", Justification = "<Pending>")]
         public ICollection<AccessKey> AccessKeys { get; set; } = new List<AccessKey>();

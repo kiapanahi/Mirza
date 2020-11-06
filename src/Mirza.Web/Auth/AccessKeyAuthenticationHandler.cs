@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using System.Linq;
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
@@ -10,7 +11,6 @@ using Mirza.Web.Services.User;
 
 namespace Mirza.Web.Auth
 {
-    // ReSharper disable once ClassNeverInstantiated.Global
     public class AccessKeyAuthenticationHandler : AuthenticationHandler<AccessKeyAuthenticationOptions>
     {
         private const string AuthorizationHeaderKey = "Authorization";
@@ -56,10 +56,8 @@ namespace Mirza.Web.Auth
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString(CultureInfo.InvariantCulture)),
                 new Claim(ClaimTypes.Name, $"{user.FirstName} {user.LastName}"),
                 new Claim(ClaimTypes.Email, user.Email),
-                new Claim(MirzaClaimTypes.Team, user.Team?.Id.ToString(CultureInfo.InvariantCulture) ?? "0"),
-
-                // TODO: read tenant id form user object
-                new Claim(MirzaClaimTypes.Tenant, "1")
+                new Claim(MirzaClaimTypes.Teams, string.Join(',', user.Teams.Select(t=> t.TeamId))),
+                new Claim(MirzaClaimTypes.Tenant, user.TenantId.ToString(CultureInfo.InvariantCulture))
             };
             var identity = new ClaimsIdentity(claims, Scheme.Name);
             var principal = new ClaimsPrincipal(identity);

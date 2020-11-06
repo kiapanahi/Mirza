@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Mirza.Web.Data;
 using Mirza.Web.Dto;
+using Mirza.Web.Models;
 
 namespace Mirza.Web.Services.Report
 {
@@ -16,12 +17,16 @@ namespace Mirza.Web.Services.Report
             _dbContext = dbContext;
         }
 
-        public async Task<IEnumerable<WorkLogReportOutput>> GetReportAsync()
+        public async Task<IEnumerable<WorkLogReportOutput>> GetReportAsync(MirzaUser user)
         {
-            var workLogItems = await _dbContext.WorkLogSet.Include(w => w.User)
+
+            var workLogItems = await _dbContext.WorkLogSet
+                .Include(w => w.User)
+                .Where(w=>w.User.TenantId == user.TenantId)
                 .OrderByDescending(w => w.LogDate)
                 .ThenByDescending(w => w.UserId)
-                .ToListAsync().ConfigureAwait(false);
+                .ToListAsync()
+                .ConfigureAwait(false);
 
             var result = workLogItems.GroupBy(g => new { Email = g.User.Email, WorkLogDate = g.EntryDate.Date })
                 .Select(g => new WorkLogReportOutput

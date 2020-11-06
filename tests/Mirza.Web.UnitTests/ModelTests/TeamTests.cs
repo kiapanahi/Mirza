@@ -16,7 +16,7 @@ namespace Mirza.Web.UnitTests.ModelTests
         [Fact]
         public void Name_Should_Have_Validation_Error_When_Null()
         {
-            var t = new Team { Name = null };
+            var t = new MirzaTeam { Name = null };
             _teamValidator.TestValidate(t)
                 .ShouldHaveValidationErrorFor(t => t.Name)
                 .WithErrorMessage("Name must be a non-empty value")
@@ -26,7 +26,7 @@ namespace Mirza.Web.UnitTests.ModelTests
         [Fact]
         public void Name_Should_Have_Validation_Error_When_EmptyString()
         {
-            var t = new Team { Name = string.Empty };
+            var t = new MirzaTeam { Name = string.Empty };
             _teamValidator.TestValidate(t)
                 .ShouldHaveValidationErrorFor(t => t.Name)
                 .WithErrorMessage("Name must be a non-empty value")
@@ -36,7 +36,7 @@ namespace Mirza.Web.UnitTests.ModelTests
         [Fact]
         public void Name_Should_Have_Validation_Error_When_MoreThan50Characters()
         {
-            var t = new Team { Name = new string('a', 55) };
+            var t = new MirzaTeam { Name = new string('a', 55) };
             _teamValidator.TestValidate(t)
                 .ShouldHaveValidationErrorFor(t => t.Name)
                 .WithErrorMessage("Name must be at most 50 characters")
@@ -46,7 +46,7 @@ namespace Mirza.Web.UnitTests.ModelTests
         [Fact]
         public void Name_Should_Be_Valid()
         {
-            var t = new Team { Name = "sample_name" };
+            var t = new MirzaTeam { Name = "sample_name" };
             _teamValidator.TestValidate(t)
                 .ShouldNotHaveValidationErrorFor(t => t.Name);
         }
@@ -54,7 +54,7 @@ namespace Mirza.Web.UnitTests.ModelTests
         [Fact]
         public void Model_Should_Be_Valid()
         {
-            var t = new Team { Name = "sample_name" };
+            var t = new MirzaTeam { Name = "sample_name" };
             _teamValidator.TestValidate(t)
                 .ShouldNotHaveAnyValidationErrors();
         }

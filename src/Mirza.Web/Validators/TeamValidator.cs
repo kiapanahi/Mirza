@@ -5,7 +5,7 @@ using Mirza.Web.Models;
 namespace Mirza.Web.Validators
 {
     [SuppressMessage("Naming", "CA1710:Identifiers should have correct suffix", Justification = "<Pending>")]
-    public class TeamValidator : AbstractValidator<Team>
+    public class TeamValidator : AbstractValidator<MirzaTeam>
     {
         public TeamValidator()
         {

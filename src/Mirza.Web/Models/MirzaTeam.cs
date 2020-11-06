@@ -6,26 +6,15 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Mirza.Web.Models
 {
-    public class Team
+    public class MirzaTeam
     {
-        public Team()
-        {
-        }
-
-        public Team(string name)
-        {
-            Name = name;
-        }
-
-        public Team(int id, string name) : this(name)
-        {
-            Id = id;
-        }
-
         public int Id { get; set; }
         public string Name { get; set; }
 
+        public int TenantId { get; set; }
+        public MirzaTenant Tenant { get; set; }
+
         [SuppressMessage("Usage", "CA2227:Collection properties should be read only", Justification = "<Pending>")]
-        public ICollection<MirzaUser> Members { get; set; }
+        public ICollection<TeamUser> Members { get; set; }
     }
 }

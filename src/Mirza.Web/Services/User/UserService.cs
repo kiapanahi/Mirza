@@ -126,22 +126,19 @@ namespace Mirza.Web.Services.User
         {
             try
             {
-                var foundUser = await _dbContext.UserSet
-                                                .Include(a => a.AccessKeys)
-                                                .Include(t => t.Team)
-                                                .SingleOrDefaultAsync(
-                                                    user => user.IsActive &&
-                                                            user.AccessKeys.Any(
-                                                                ak => ak.State == AccessKeyState.Active &&
-                                                                      ak.Expiration >= DateTime.UtcNow &&
-                                                                      accessKey == ak.Key)
-                                                )
-                                                .ConfigureAwait(false);
+                var foundUser = await _dbContext
+                    .UserSet
+                    .Include(a => a.AccessKeys)
+                    .SingleOrDefaultAsync(user => user.IsActive &&
+                                                  user.AccessKeys.Any(ak => ak.State == AccessKeyState.Active &&
+                                                                            ak.Expiration >= DateTime.UtcNow &&
+                                                                            accessKey == ak.Key))
+                    .ConfigureAwait(false);
                 return foundUser;
             }
             catch (Exception e)
             {
-                _logger.LogError("Exception occured while querying for user with access key", e);
+                _logger.LogError(e,"Exception occured while querying for user with access key");
                 return null;
             }
         }

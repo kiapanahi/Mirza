@@ -92,7 +92,7 @@ namespace Mirza.Web.UnitTests.ServiceTests.UserServiceTests
         {
             await SetupWorkLogItems();
 
-            var exception = await Assert.ThrowsAsync<ArgumentException>(() => UserService.DeleteWorkLog(100, 1));
+            var exception = await Assert.ThrowsAsync<ArgumentException>(() => UserService.DeleteWorkLog(1000, 1));
 
             Assert.Equal("Invalid userId (Parameter 'userId')", exception.Message);
         }

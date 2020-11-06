@@ -23,42 +23,47 @@ namespace Mirza.Web.UnitTests.ServiceTests.UserServiceTests
 
             SeedData(DbContext);
 
-            UserService = new UserService(DbContext, new NullLogger<UserService>());
+            UserService = new UserService(DbContext, NullLogger<UserService>.Instance);
         }
 
-        private void SeedData(MirzaDbContext context)
+        protected virtual void SeedData(MirzaDbContext context)
         {
+            SeedTenants(context);
             SeedTeams(context);
             SeedUsers(context);
         }
 
-        private static void SeedUsers(MirzaDbContext context)
+        protected virtual void SeedTenants(MirzaDbContext context)
         {
-            var users = Enumerable.Range(1, 30).Select(idx => new MirzaUser
+            var tenantData = Enumerable.Range(1, 5).Select(idx => new MirzaTenant
             {
-                AccessKeys = new List<AccessKey>
+                Name = $"tenant-{idx}",
+                Description = $"The great tenant {idx}",
+                Teams = Enumerable.Range(1, 5).Select(i => CreateDummyTeam(i)).ToList(),
+                Members = Enumerable.Range(1, 30).Select(i => CreateDummyUser(i)).ToList()
+            });
+            context.TenantSet.AddRange(tenantData);
+            context.SaveChanges();
+        }
+        protected virtual void SeedTeams(MirzaDbContext context) { }
+        protected virtual void SeedUsers(MirzaDbContext context) { }
+
+        private MirzaTeam CreateDummyTeam(int idx) => new MirzaTeam { Name = $"team-{idx}" };
+        private MirzaUser CreateDummyUser(int idx) => new MirzaUser
+        {
+            AccessKeys = new List<AccessKey>
                 {
                     new AccessKey($"012345678901234567890123456789{idx.ToString().PadLeft(2, '0')}")
                         {OwnerId = idx, State = AccessKeyState.Active, Expiration = DateTime.Parse("2020-10-01")},
                     new AccessKey($"abcdefabcdefabcdefabcdefabcdef{idx.ToString().PadLeft(2, '0')}")
                         {OwnerId = idx, State = AccessKeyState.Inative, Expiration = DateTime.Parse("2020-10-01")}
                 },
-                Email = $"user{idx}@example.com",
-                TeamId = idx % 5 + 1,
-                IsActive = true,
-                FirstName = $"firstname {idx}",
-                LastName = $"lastname {idx}"
-            });
-            context.UserSet.AddRange(users);
-            context.SaveChanges();
-        }
+            Email = $"user{idx}@example.com",
+            IsActive = true,
+            FirstName = $"firstname {idx}",
+            LastName = $"lastname {idx}"
+        };
 
-        private static void SeedTeams(MirzaDbContext context)
-        {
-            var teams = Enumerable.Range(1, 5).Select(idx => new Team { Name = $"team-{idx}" });
-            context.TeamSet.AddRange(teams);
-            context.SaveChanges();
-        }
 
         protected IUserService UserService { get; private set; }
 
